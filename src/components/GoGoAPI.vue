@@ -1,49 +1,107 @@
 <template>
   <div class="gogo">
     <h1>{{ msg }}</h1>
-    <h3>GoGo Report</h3>
-    <ul> {{ this.gogoReport }} </ul>
 
+    <div>
+      <h3>GoGo Report</h3>
+      <ul>
+        {{
+          gogoReport
+        }}
+      </ul>
+    </div>
 
-    <!-- <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex" target="_blank" rel="noopener">vuex</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul> -->
+    <div>
+      <h3>Logo Program</h3>
+      <br />
+      <div>
+        <textarea v-model="logoProgram" placeholder="Enter the logo program">
+        </textarea>
+        <div></div>
+
+        <button @click="downloadLogo()">Download</button>
+      </div>
+    </div>
+
+    <div>
+      <h3>Raw commands</h3>
+      <br />
+      <div>
+        <li>Category ID: <input type="number" v-model="cmdCategory" /></li>
+        <li>Command ID: <input type="number" v-model="cmdID" /></li>
+        <li>Command Params: <input type="text" v-model="cmdParams" /></li>
+      </div>
+      <br />
+      <button @click="sendCommand()">Send command</button>
+    </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from "vuex";
 
 export default {
-  name: 'GoGoAPI',
-  props: {
-    msg: String
+  name: "GoGoAPI",
+  data: function () {
+    return {
+      logoProgram: "",
+      cmdCategory: 0,
+      cmdID: 0,
+      cmdParams: "",
+    };
   },
-  computed: { ...mapGetters(['gogoReport']) }
-}
+  props: {
+    msg: String,
+  },
+  computed: {
+    ...mapGetters(["gogoReport", "boardStatus"]),
+  },
+  methods: {
+    ...mapActions(["sendMessageWS"]),
+    downloadLogo: function () {
+      console.log("board version: " + this.gogoReport[18]);
+      if (this.logoProgram && this.boardStatus && false) {
+        console.log(this.logoProgram);
+
+        var compilerUrl =
+          "https://7fkqkq6trh.execute-api.ap-southeast-1.amazonaws.com/logo/1.4/compile";
+        var sendingData = {
+          logo: this.logoProgram,
+          firmware_version: this.gogoReport[20],
+          board_type: this.gogoReport[17],
+          board_version: this.gogoReport[18],
+        };
+
+        this.$http.post(compilerUrl, sendingData, { emulateJSON: true }).then(
+          (response) => {
+            console.info(response.data);
+            // this.sendMessageWS(response.data);
+          },
+          (response) => {
+            // Error
+            if (
+              response.data &&
+              response.data.status &&
+              response.data.status >= 500 &&
+              response.data.status < 600
+            ) {
+              console.error("syntax error");
+            } else {
+              console.error("cloud service unavailable");
+            }
+          }
+        );
+      } else {
+        console.error("board not connected or no logo program to download");
+      }
+    },
+    sendCommand: function () {
+      console.info(this.cmdCategory, this.cmdID, this.cmdParams);
+      // let gogoPacket = [0x54, 0xfe, ...]
+      // this.sendMessageWS(gogoPacket)
+    },
+  },
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -51,15 +109,42 @@ export default {
 h3 {
   margin: 40px 0 0;
 }
+
 ul {
   list-style-type: none;
   padding: 0;
 }
+
 li {
   display: inline-block;
   margin: 0 10px;
 }
+
 a {
   color: #42b983;
+}
+
+textarea {
+  width: 500px;
+  height: 200px;
+}
+
+button {
+  font-size: 0.8em;
+  cursor: pointer;
+  outline: none;
+  padding: 0.75em 2em;
+  border-radius: 2em;
+  display: inline-block;
+  color: #09af32;
+  background-color: transparent;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  border: 1px solid #09af32;
+}
+
+button.alt {
+  color: #fff;
+  background-color: #851e3e;
 }
 </style>

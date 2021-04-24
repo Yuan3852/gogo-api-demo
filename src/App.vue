@@ -8,13 +8,11 @@
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld.vue'
 import GoGoAPI from "./components/GoGoAPI.vue";
 
 export default {
   name: "App",
   components: {
-    // HelloWorld,
     GoGoAPI,
   },
 };
