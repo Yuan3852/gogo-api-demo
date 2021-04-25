@@ -1,7 +1,5 @@
 <template>
   <div class="gogo">
-    <h1>{{ msg }}</h1>
-
     <div>
       <h3>GoGo Report</h3>
       <ul>
@@ -32,7 +30,7 @@
         <li>Command Params: <input type="text" v-model="cmdParams" /></li>
       </div>
       <br />
-      <button @click="sendCommand()">Send command</button>
+      <button @click="sendControlCommand()">Send command</button>
     </div>
   </div>
 </template>
@@ -57,10 +55,91 @@ export default {
     ...mapGetters(["gogoReport", "boardStatus"]),
   },
   methods: {
-    ...mapActions(["sendMessageWS"]),
+    ...mapActions(["sendWS"]),
+
+    sendCommand: function (data, callback) {
+      var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include endpoint ID
+      for (var i in data) {
+        cmdPacket[parseInt(i)] = data[i];
+      }
+      console.log(cmdPacket);
+      this.sendWS(cmdPacket);
+
+      if (typeof callback === "function") {
+        callback();
+      }
+    },
+
+    setLogoMemoryPointer: function (callback) {
+      var cmdList = [];
+      cmdList[1] = 1; //? Category ID
+      cmdList[2] = 1; //? Command ID
+      cmdList[3] = 0;
+      cmdList[4] = 0;
+      this.sendCommand(cmdList, callback);
+    },
+
+    writeLogoMemory: function (content, callback, offset) {
+      offset = offset || 0;
+      if (offset > content.length) {
+        if (typeof callback === "function") {
+          callback();
+        }
+        return;
+      }
+
+      /* Write content to the flash memory */
+      var txLength = content.length;
+
+      var cmdList = [];
+      cmdList[1] = 1; //? category ID
+      cmdList[2] = 3; //? command ID
+
+      //? set parameter 1 for content length
+      //* # if the content cannot fit in one packet
+      if (txLength - offset > 60) {
+        cmdList[3] = 60;
+      } else {
+        cmdList[3] = txLength - offset;
+      }
+
+      // # copy the content to be transmitted to the output buffer
+      for (var i = 0; i < cmdList[3]; i++) {
+        cmdList[4 + Number(i)] = content[offset + Number(i)];
+      }
+      offset += 60;
+
+      this.sendCommand(cmdList, () => {
+        setTimeout(() => {
+          this.writeLogoMemory(content, callback, offset);
+        }, 10);
+      });
+    },
+
+    downloadOpcodeToBoard: function (logoOpcode) {
+      this.setLogoMemoryPointer(() => {
+        this.writeLogoMemory(
+          logoOpcode,
+          () => {
+            setTimeout(() => {
+              //* sending beep packet
+              var cmdList = [];
+              cmdList[1] = 0; //? Category ID
+              cmdList[2] = 11; //? Command ID
+              this.sendCommand(cmdList, null);
+            }, 15);
+          },
+          0
+        );
+      });
+    },
+
+    sendControlCommand: function () {
+      console.info(this.cmdCategory, this.cmdID, this.cmdParams);
+    },
+
     downloadLogo: function () {
-      console.log("board version: " + this.gogoReport[18]);
-      if (this.logoProgram && this.boardStatus && false) {
+      if (this.logoProgram && this.boardStatus) {
         console.log(this.logoProgram);
 
         var compilerUrl =
@@ -74,11 +153,14 @@ export default {
 
         this.$http.post(compilerUrl, sendingData, { emulateJSON: true }).then(
           (response) => {
-            console.info(response.data);
-            // this.sendMessageWS(response.data);
+            if (response.data.data != undefined) {
+              console.info(response.data);
+              this.downloadOpcodeToBoard(response.data.data);
+            } else {
+              console.error(response.data);
+            }
           },
           (response) => {
-            // Error
             if (
               response.data &&
               response.data.status &&
@@ -94,11 +176,6 @@ export default {
       } else {
         console.error("board not connected or no logo program to download");
       }
-    },
-    sendCommand: function () {
-      console.info(this.cmdCategory, this.cmdID, this.cmdParams);
-      // let gogoPacket = [0x54, 0xfe, ...]
-      // this.sendMessageWS(gogoPacket)
     },
   },
 };

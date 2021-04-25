@@ -3,7 +3,7 @@
     <!-- <img alt="Vue logo" src="./assets/logo.png">
     <HelloWorld msg="Welcome to Your Vue.js App"/> -->
     <img alt="gogo-logo" src="./assets/gogo-logo.png">
-    <GoGoAPI msg="Welcome to GoGo API demo ..." />
+    <GoGoAPI/>
   </div>
 </template>
 

@@ -11,11 +11,13 @@ import {
 
 Vue.use(Vuex)
 
+
+
 export default new Vuex.Store({
   state: {
     socket: {
       isConnected: false,
-      message: '',
+      message: 'disconnected',
       reconnectError: false,
     },
     board: {
@@ -38,9 +40,17 @@ export default new Vuex.Store({
     },
     // default handler called for all methods
     [SOCKET_ONMESSAGE](state, message) {
-      state.socket.message = message
-      if (message != undefined && message.ping != null)
-        state.board.status = true
+      if (message.stream != undefined) {
+        state.socket.message = message.stream
+        if (!state.board.status)
+          state.board.status = true
+      }
+      else {
+        if (state.board.status) {
+          state.board.status = false
+          state.socket.message = "disconnected"
+        }
+      }
     },
     // mutations for reconnect methods
     [SOCKET_RECONNECT](state, count) {
@@ -52,9 +62,12 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    sendMessageWS: function (context, message) {
-      Vue.prototype.$socket.send(message)
-    }
+    sendWS: function (context, data) {
+      Vue.prototype.$socket.sendObj({
+        'type': 'rawHID',
+        'data': data
+      })
+    },
   },
   modules: {
   },
