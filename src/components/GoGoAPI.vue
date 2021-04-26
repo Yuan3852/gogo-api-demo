@@ -17,7 +17,7 @@
         </textarea>
         <div></div>
 
-        <button @click="downloadLogo()">Download</button>
+        <button @click="downloadLogoProgram()">Download</button>
       </div>
     </div>
 
@@ -62,7 +62,7 @@ export default {
       for (var i in data) {
         cmdPacket[parseInt(i)] = data[i];
       }
-      console.log(cmdPacket);
+      // console.log(cmdPacket);
       this.sendWS(cmdPacket);
 
       if (typeof callback === "function") {
@@ -134,11 +134,7 @@ export default {
       });
     },
 
-    sendControlCommand: function () {
-      console.info(this.cmdCategory, this.cmdID, this.cmdParams);
-    },
-
-    downloadLogo: function () {
+    downloadLogoProgram: function () {
       if (this.logoProgram && this.boardStatus) {
         console.log(this.logoProgram);
 
@@ -176,6 +172,20 @@ export default {
       } else {
         console.error("board not connected or no logo program to download");
       }
+    },
+
+    sendControlCommand: function () {
+      var cmdList = [];
+      cmdList[1] = Number(this.cmdCategory); //? category ID
+      cmdList[2] = Number(this.cmdID); //? command ID
+
+      var params = "";
+      if (this.cmdParams != "") params = this.cmdParams.split(",");
+
+      for (var i in params)
+        cmdList[parseInt(i) + 3] = parseInt(params[parseInt(i)]);
+
+      this.sendCommand(cmdList, null);
     },
   },
 };
