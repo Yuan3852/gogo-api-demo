@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import VueResource from 'vue-resource'
 import store from './store'
 import {
   SOCKET_ONOPEN,
@@ -22,6 +23,8 @@ const mutations = {
 import VueNativeSock from 'vue-native-websocket'
 
 Vue.config.productionTip = false
+
+Vue.use(VueResource)
 
 Vue.use(VueNativeSock, 'ws://localhost:8317', {
   store: store,

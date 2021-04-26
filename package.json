@@ -1,6 +1,6 @@
 {
   "name": "gogo-api-demo",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -10,6 +10,7 @@
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
     "vue-native-websocket": "^2.0.14",
+    "vue-resource": "^1.5.2",
     "vuex": "^3.4.0"
   },
   "devDependencies": {
