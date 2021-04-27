@@ -6,7 +6,7 @@ The communication can be shows in following diagram
 **GoGoBoard** `<-- USB HID -->` **GoGo Plugin** `<-- websocket -->` **Web Application**
 
 ## Reference Docs
-- [GoGo protocol docs](https://docs.google.com/spreadsheets/d/1c-5hY5dZ3RfICFeSWPOMO3auTUbiLYG0szgEDPpcsz0/edit?usp=sharing)
+- [GoGo protocol docs](https://docs.google.com/spreadsheets/d/1CAfjpUdyYPqjVIPBuzxWlWMIDCX9ud6ybqAj8qMgy4E/edit?usp=sharing)
 
 ## Project setup
 ```
