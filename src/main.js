@@ -21,12 +21,13 @@ const mutations = {
 }
 
 import VueNativeSock from 'vue-native-websocket'
+import { CONST } from './store/const'
 
 Vue.config.productionTip = false
 
 Vue.use(VueResource)
 
-Vue.use(VueNativeSock, 'ws://localhost:8317', {
+Vue.use(VueNativeSock, CONST.websocket_port, {
   store: store,
   mutations: mutations,
   reconnection: true,

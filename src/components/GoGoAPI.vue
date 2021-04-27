@@ -37,6 +37,7 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
+import { CONST } from "../store/const";
 
 export default {
   name: "GoGoAPI",
@@ -72,10 +73,10 @@ export default {
 
     setLogoMemoryPointer: function (callback) {
       var cmdList = [];
-      cmdList[1] = 1; //? Category ID
-      cmdList[2] = 1; //? Command ID
-      cmdList[3] = 0;
-      cmdList[4] = 0;
+      cmdList[CONST.category_id_index] = 1;
+      cmdList[CONST.command_id_index] = 1;
+      cmdList[CONST.parameters_index] = 0;
+      cmdList[CONST.parameters_index + 1] = 0;
       this.sendCommand(cmdList, callback);
     },
 
@@ -92,20 +93,20 @@ export default {
       var txLength = content.length;
 
       var cmdList = [];
-      cmdList[1] = 1; //? category ID
-      cmdList[2] = 3; //? command ID
+      cmdList[CONST.category_id_index] = 1;
+      cmdList[CONST.command_id_index] = 3;
 
       //? set parameter 1 for content length
       //* # if the content cannot fit in one packet
       if (txLength - offset > 60) {
-        cmdList[3] = 60;
+        cmdList[CONST.parameters_index] = 60;
       } else {
-        cmdList[3] = txLength - offset;
+        cmdList[CONST.parameters_index] = txLength - offset;
       }
 
       // # copy the content to be transmitted to the output buffer
-      for (var i = 0; i < cmdList[3]; i++) {
-        cmdList[4 + Number(i)] = content[offset + Number(i)];
+      for (var i = 0; i < cmdList[CONST.parameters_index]; i++) {
+        cmdList[CONST.parameters_index + 1 + Number(i)] = content[offset + Number(i)];
       }
       offset += 60;
 
@@ -124,8 +125,8 @@ export default {
             setTimeout(() => {
               //* sending beep packet
               var cmdList = [];
-              cmdList[1] = 0; //? Category ID
-              cmdList[2] = 11; //? Command ID
+              cmdList[CONST.category_id_index] = 0;
+              cmdList[CONST.command_id_index] = 11;
               this.sendCommand(cmdList, null);
             }, 15);
           },
@@ -138,37 +139,37 @@ export default {
       if (this.logoProgram && this.boardStatus) {
         console.log(this.logoProgram);
 
-        var compilerUrl =
-          "https://7fkqkq6trh.execute-api.ap-southeast-1.amazonaws.com/logo/1.4/compile";
         var sendingData = {
           logo: this.logoProgram,
-          firmware_version: this.gogoReport[20],
-          board_type: this.gogoReport[17],
-          board_version: this.gogoReport[18],
+          firmware_version: this.gogoReport[CONST.firmware_version_index],
+          board_type: this.gogoReport[CONST.board_type_index],
+          board_version: this.gogoReport[CONST.board_version_index],
         };
 
-        this.$http.post(compilerUrl, sendingData, { emulateJSON: true }).then(
-          (response) => {
-            if (response.data.data != undefined) {
-              console.info(response.data);
-              this.downloadOpcodeToBoard(response.data.data);
-            } else {
-              console.error(response.data);
+        this.$http
+          .post(CONST.compiler_url, sendingData, { emulateJSON: true })
+          .then(
+            (response) => {
+              if (response.data.data != undefined) {
+                console.info(response.data);
+                this.downloadOpcodeToBoard(response.data.data);
+              } else {
+                console.error(response.data);
+              }
+            },
+            (response) => {
+              if (
+                response.data &&
+                response.data.status &&
+                response.data.status >= 500 &&
+                response.data.status < 600
+              ) {
+                console.error("syntax error");
+              } else {
+                console.error("cloud service unavailable");
+              }
             }
-          },
-          (response) => {
-            if (
-              response.data &&
-              response.data.status &&
-              response.data.status >= 500 &&
-              response.data.status < 600
-            ) {
-              console.error("syntax error");
-            } else {
-              console.error("cloud service unavailable");
-            }
-          }
-        );
+          );
       } else {
         console.error("board not connected or no logo program to download");
       }
@@ -176,14 +177,14 @@ export default {
 
     sendControlCommand: function () {
       var cmdList = [];
-      cmdList[1] = Number(this.cmdCategory); //? category ID
-      cmdList[2] = Number(this.cmdID); //? command ID
+      cmdList[CONST.category_id_index] = Number(this.cmdCategory);
+      cmdList[CONST.command_id_index] = Number(this.cmdID);
 
       var params = "";
       if (this.cmdParams != "") params = this.cmdParams.split(",");
 
       for (var i in params)
-        cmdList[parseInt(i) + 3] = parseInt(params[parseInt(i)]);
+        cmdList[CONST.parameters_index + parseInt(i)] = parseInt(params[parseInt(i)]);
 
       this.sendCommand(cmdList, null);
     },
