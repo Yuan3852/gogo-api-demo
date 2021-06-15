@@ -1,5 +1,6 @@
 <template>
   <div class="gogo">
+    <img alt="gogo-logo" src="@/assets/gogo-logo.png">
     <div>
       <h3>GoGo Report</h3>
       <ul>
