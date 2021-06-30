@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import GoGoAPI from '../views/GoGoAPI.vue'
+import Graph from '../chart/Graph.vue'
 
 Vue.use(VueRouter)
 
@@ -23,6 +24,11 @@ const routes = [
     path: '/gogoapi',
     name: 'GoGoAPI',
     component: GoGoAPI
+  },
+  {
+    path: '/graph',
+    name: 'Graph',
+    component: Graph
   }
 ]
 

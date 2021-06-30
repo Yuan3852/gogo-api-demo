@@ -17,6 +17,8 @@ export default new Vuex.Store({
       isConnected: false,
       message: 'disconnected',
       reconnectError: false,
+      respond: 0,
+      respondSize: 0
     },
     board: {
       status: false
@@ -39,6 +41,15 @@ export default new Vuex.Store({
     // default handler called for all methods
     [SOCKET_ONMESSAGE](state, message) {
       if (message.stream != undefined) {
+        let x = message.stream
+        if(x[0] == 20){
+          let size = parseInt(x[1])
+          state.socket.respondSize = size
+          console.log("This is the size in side store: " + state.socket.respondSize)
+          x.splice(0,3)
+          console.log("in")
+          state.socket.respond = x
+        }
         state.socket.message = message.stream
         if (!state.board.status)
           state.board.status = true
@@ -71,6 +82,8 @@ export default new Vuex.Store({
   },
   getters: {
     gogoReport: state => state.socket.message,
-    boardStatus: state => state.board.status
+    boardStatus: state => state.board.status,
+    gogoRespond: state => state.socket.respond,
+    gogoRespondSize: state => state.socket.respondSize
   }
 })
