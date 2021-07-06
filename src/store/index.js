@@ -18,7 +18,8 @@ export default new Vuex.Store({
       message: 'disconnected',
       reconnectError: false,
       respond: 0,
-      respondSize: 0
+      respondSize: 0,
+      datalogStatus: ""
     },
     board: {
       status: false
@@ -45,10 +46,18 @@ export default new Vuex.Store({
         if(x[0] == 20){
           let size = parseInt(x[1])
           state.socket.respondSize = size
-          console.log("This is the size in side store: " + state.socket.respondSize)
-          x.splice(0,3)
-          console.log("in")
-          state.socket.respond = x
+          let status = parseInt(x[3])
+          console.log("in");
+          if(status == 1){
+            x.splice(0,4)
+            state.socket.respond = x
+            state.socket.datalogStatus = "Successfully retrieve the data from the board."
+          }else if(status == 2){
+            state.socket.datalogStatus = "Failed to sync data from board."
+          }else if(status == 3){
+            state.socket.datalogStatus = "This file is empty."
+          }
+          // console.log("This is the size in side store: " + state.socket.respondSize)
         }
         state.socket.message = message.stream
         if (!state.board.status)
@@ -84,6 +93,7 @@ export default new Vuex.Store({
     gogoReport: state => state.socket.message,
     boardStatus: state => state.board.status,
     gogoRespond: state => state.socket.respond,
-    gogoRespondSize: state => state.socket.respondSize
+    gogoRespondSize: state => state.socket.respondSize,
+    gogoRespondStatus: state => state.socket.datalogStatus
   }
 })

@@ -1,5 +1,14 @@
 <template>
     <div class="Graph">
+        <Dropdown
+            :options="dropdownOptions"
+            :disabled="false"
+            v-on:selected="validateSelection"
+            v-on:filter="getDropdownValues"
+            name="channels"
+            :maxItem="10"
+            placeholder="Please select an option">
+        </Dropdown>
         <div class="chart">
             <!-- <highcharts :constructor-type="'stockChart'" :options="chartOptions" v-if="showChart"></highcharts> -->
             <chart :series="series" />
@@ -8,18 +17,19 @@
         {{
             computePacket
         }}
-          <h3>Raw commands</h3>
+          <h3>Offline Datalog</h3>
       <br />
-      <div>
+      <!-- <div>
         <li>Category ID: <input type="number" v-model="cmdCategory" /></li>
         <li>Command ID: <input type="number" v-model="cmdID" /></li>
         <li>Command Params: <input type="text" v-model="cmdParams" /></li>
-      </div>
+      </div> -->
       <br />
-        <button @click="sendControlCommand()">Send command</button>
+        <!-- <button @click="sendControlCommand()">Send command</button> -->
         <button @click="sendOfflineDatalog()">Sync Data</button>
         <button @click="clearData()">Clear</button>
-        <button @click="updateData">Update Data</button>
+        <!-- <button @click="testData()">Test</button> -->
+        <!-- <button @click="updateData">Update Data</button> -->
     </div>
 </template>
 
@@ -30,6 +40,7 @@ import { CONST } from "../store/const";
 // import Highcharts from 'highcharts'
 // import stockInit from 'highcharts/modules/stock'
 import chart from "../components/Chart.vue"
+import Dropdown from 'vue-simple-search-dropdown'
 // import { type } from 'os';
 
 // stockInit(Highcharts)
@@ -42,6 +53,10 @@ let save = [[1560778200000,48.47],[1560864600000,49.61],[1560951000000,49.47]]
 let saver = ""
 
 let shown
+
+let sin = []
+
+let dropdownname = []
 
 const dataMapper = (data) =>
   [
@@ -56,7 +71,8 @@ const dataMapper = (data) =>
 export default {
     name: "Graph",
     components: {
-        chart
+        chart,
+        Dropdown
     },
     data: function () {
         return {
@@ -73,31 +89,26 @@ export default {
             //     },
             //     plotBackgroundColor: 'rgba(255, 255, 255, .9)',
             // },
+            dropdownOptions: [],
+            selected: "",
+            clicked: false,
+            series: []
         };
     },
     props: {
         msg: String,
-        // series: {
-        //     type: Array,
-        //     default: () => [],
-        // },
     },
     computed: {
-        ...mapGetters(["gogoRespond","gogoRespondSize"]),
-        // computeReadText: function () {
-        //     readText(this.gogoRespond)
-        // }
+        ...mapGetters(["gogoRespond","gogoRespondSize","gogoRespondStatus"]),
+
         computePacket: function () {
             return this.readText(this.gogoRespond)
         },
 
-        // plotChar: function () {
-        //     this.chartOptions.series.data = shown
+        // series() {
+        //     return this.toggle ? shown : shown
+        //     // return shown;
         // },
-
-        series() {
-            return this.toggle ? this.yearlyStats : shown;
-        },
         
     },
     // created(){
@@ -113,23 +124,130 @@ export default {
         .then((res) => res.json())
         .then((res) => {
             this.yearlyStats = dataMapper(res.stats);
-            console.log(this.yearlyStats)
+            // console.log(this.yearlyStats)
         });
 
         fetch("https://ethermine-api.herokuapp.com/stats/allStats?interval=DAY")
         .then((res) => res.json())
         .then((res) => {
             this.dailyStats = dataMapper(res.stats);
-            console.log(this.dailyStats)
+            // console.log(this.dailyStats)
         });
+
+        for(let i = 0 ; i < sin.length ; i++){
+            dropdownname.push({
+                name: sin[i]["channel"],
+                id: i + 1
+            })
+        }
     },
     methods: {
         ...mapActions(["sendWS"]),
-        clearData: function (){
-            localStorage.clear()
-        },
         updateData() {
             this.toggle = !this.toggle;
+        },
+        validateSelection(selection) {
+            if(!this.clicked){
+                this.clicked = true
+                this.selected = selection.name;
+                // for(let i = 0 ; i < sin.length ; i++){
+                //     if(this.selected == sin[i]["channel"]){
+                //         for(let j = 0 ; j < sin[i].data ; j ++){
+                //             // console.log(sin[i]["data"][j])
+                //             shown.push
+                //         }
+                //     }
+                // }
+                // console.log(shown);
+                // this.updateData()
+                // console.log(selection.name+' has been selected');
+                this.clicked = false
+            }
+        },
+        getDropdownValues(keyword) {
+            this.clicked = true
+            this.selected = keyword;
+            let objJSON = []
+            for(let i = 0 ; i < sin.length ; i++){
+                // console.log(this.selected == sin[i]["channel"]);
+                if(this.selected == sin[i]["channel"]){
+                    // console.log("match!")
+                    for(let j = 0 ; j < sin[i]["data"].length ; j ++){
+                        // console.log(sin[i]["data"][j])
+                        objJSON.push(sin[i]["data"][j])
+                    }
+                }
+            }
+        // shown = objJSON
+        this.series = objJSON
+        ////console.log(shown);
+        // this.updateData()
+        // shown = 
+        this.clicked = false
+        console.log('You could refresh options by querying the API with '+keyword);
+        },
+        testData:function (data){
+            // let inputString = [[1,"ch3","hello",123],[2,"ch3","hello1",123],[3,"ch2","hello",123],[4,"ch2","hello1",123],[5,"ch1","hello1",123]]
+            let inputString = data
+            let obj = []
+            for(let i = 0 ; i < inputString.length ; i ++){
+                
+                if(obj.length == 0){
+                    obj.push({
+                    channel: inputString[i][1],
+                    data: [{
+                        name: inputString[i][2],
+                        data: [[inputString[i][0],inputString[i][3]]],
+                        animation: false
+                    }]
+                    })
+                    console.log('added' + (i + 1))
+                }else{
+                    for(let j = 0 ; j < obj.length ; j++){// for in obj
+
+                        if(inputString[i][1] == obj[j]["channel"]){// if same channel
+
+                            for(let k = 0 ; k < obj[j]["data"].length ; k ++){// for in channel's data
+
+                                if(inputString[i][2] == obj[j]["data"][k]["name"]){//if same field
+
+                                    obj[j]["data"][k]["data"].push([inputString[i][0],inputString[i][3]])
+                                    // console.log('rep' + i + ' ' + obj[j]["data"] + ' ' + obj[j]["data"][k]["data"]);
+                                    break
+                                }
+
+                                else if(k == obj[j]["data"].length - 1){
+                                    obj[j]["data"].push({// if not same field
+                                        name: inputString[i][2],
+                                        data: [[inputString[i][0],inputString[i][3]]],
+                                        animation: false
+                                    })
+                                    break
+                                }
+                            }
+
+                            break
+                        }
+                        
+                        else if(j == obj.length - 1){
+                            obj.push({
+                            channel: inputString[i][1],
+                            data: [{
+                                name: inputString[i][2],
+                                data: [[inputString[i][0],inputString[i][3]]],
+                                animation: false
+                            }]
+                            })
+                            break
+                        }
+                        
+                        // if not same channel
+                        
+                    }
+                }
+            }
+
+            return obj
         },
         readText: function (data) {
             let save = ""
@@ -138,87 +256,130 @@ export default {
             // console.log(this.gogoRespondSize)
             for (let i = 0 ; i < respondSize ; i++){
                 save = String.fromCharCode(data[i])
-                console.log(save)
+                // console.log(save)
                 saver += save
             }
-
             // console.log("this is data lenght: " + respondSize)
 
-            if(respondSize < 60){
+            // console.log(saver);
+
+            if(respondSize < 59){
+                let data_toPlot = []
                 let x = saver
                 let y = x.split('\n')
+                y.splice(0,1)
+                y.splice(-1,1)
+                console.log(y)
                 let z = []
+                // console.log(y);
+                let dummy = [{
+
+                    }]
                 for (let i = 0 ; i < y.length ; i++){
-                    z[i] = y[i].split(',').map(x=>+x)
+                    z[i] = y[i].split(',')
+                    // let a = [parseInt(z[i][0]), parseInt(z[i][3])]
+                    // data_toPlot.push(a)
+                    // obj.data[i]= {
+                        //     Time: z[i][0],
+                    //     Channel: z[i][1],
+                    //     Field: z[i][2],
+                    //     Value: z[i][3]
+                    // }
+                    z[i][0] = parseInt(z[i][0])
+                    try{
+                        z[i][1] = z[i][1].trim()
+                        z[i][2] = z[i][2].trim()
+                    }catch(e){
+                        console.log("error catch: ", z);
+                    }
+                    z[i][3] = parseFloat(z[i][3])
                 }
-                // localStorage.stacker = z
-                // console.log("this is localStorage: " + localStorage.stacker)
-                // console.log("this is z: " + z)
-                let constructPacket = (z) => ([{
-                    name:"Test",
-                    data: z,
-                    animation: false
-                }])
 
-                let objJSON = constructPacket(z)
+                console.log(z);
 
-                console.log(objJSON)
+                dropdownname = []
 
-                shown = objJSON
+                sin = this.testData(z)
+                console.log(sin);
+                for(let i = 0 ; i < sin.length ; i++){
+                    dropdownname.push({
+                        name: sin[i]["channel"],
+                        id: i + 1
+                    })
+                }
+                this.dropdownOptions = dropdownname
+                // console.log(sin)
+                // let constructPacket = (z) => ([{
+                //     name:"Test",
+                //     data: z,
+                //     animation: false
+                // }])
 
-                return x
+                // let objJSON = constructPacket(data_toPlot)
+                // console.log(objJSON);
+                // shown = objJSON
+
+                // this.updateData();
+
+                // return  
+                return this.gogoRespondStatus
             }
         },
-        sendCommand: function (data, callback) {
-            var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include endpoint ID
-            for (var i in data) {
-                cmdPacket[parseInt(i)] = data[i];
+            sendCommand: function (data, callback) {
+                var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include endpoint ID
+                for (var i in data) {
+                    cmdPacket[parseInt(i)] = data[i];
+                }
+                // console.log(cmdPacket);
+                this.sendWS(cmdPacket);
+
+                if (typeof callback === "function") {
+                    callback();
+                }
+            },
+            sendControlCommand: function () {
+                var cmdList = [];
+                cmdList[CONST.category_id_index] = Number(this.cmdCategory);
+                cmdList[CONST.command_id_index] = Number(this.cmdID);
+
+                var params = "";
+                if (this.cmdParams != "") params = this.cmdParams.split(",");
+
+                for (var i in params)
+                    cmdList[CONST.parameters_index + parseInt(i)] = parseInt(params[parseInt(i)]);
+
+                this.sendCommand(cmdList, null);
+            },
+            sendOfflineDatalog: function () {
+                var cmdList = [];
+                saver = ""
+                cmdList[CONST.category_id_index] = 20;
+                cmdList[CONST.command_id_index] = 2;
+
+                var params = "";
+                // if (this.cmdParams != "") params = this.cmdParams.split(",");
+
+                for (var i in params)
+                    cmdList[CONST.parameters_index + parseInt(i)] = parseInt(params[parseInt(i)]);
+
+                this.sendCommand(cmdList, null);
+                // this.showText(this.gogoRespond)
+                
+            },
+            clearData () {
+                var cmdList = [];
+                cmdList[CONST.category_id_index] = 20;
+                cmdList[CONST.command_id_index] = 3;
+
+                var params = "";
+                // if (this.cmdParams != "") params = this.cmdParams.split(",");
+
+                for (var i in params)
+                    cmdList[CONST.parameters_index + parseInt(i)] = parseInt(params[parseInt(i)]);
+
+                this.sendCommand(cmdList, null);
             }
-            // console.log(cmdPacket);
-            this.sendWS(cmdPacket);
-
-            if (typeof callback === "function") {
-                callback();
-            }
-        },
-        sendControlCommand: function () {
-            var cmdList = [];
-            cmdList[CONST.category_id_index] = Number(this.cmdCategory);
-            cmdList[CONST.command_id_index] = Number(this.cmdID);
-
-            var params = "";
-            if (this.cmdParams != "") params = this.cmdParams.split(",");
-
-            for (var i in params)
-                cmdList[CONST.parameters_index + parseInt(i)] = parseInt(params[parseInt(i)]);
-
-            this.sendCommand(cmdList, null);
-        },
-        sendOfflineDatalog: function () {
-            var cmdList = [];
-            cmdList[CONST.category_id_index] = 20;
-            cmdList[CONST.command_id_index] = 2;
-
-            var params = "";
-            // if (this.cmdParams != "") params = this.cmdParams.split(",");
-
-            for (var i in params)
-                cmdList[CONST.parameters_index + parseInt(i)] = parseInt(params[parseInt(i)]);
-
-            this.sendCommand(cmdList, null);
-            // this.showText(this.gogoRespond)
-            
-        }
     },
-    // watch: {
-    //     gogoReponse: {
-    //         deep: true,
-    //         handler(newPacket) {
-    //             console.log(newPacket)
-    //             readText(newPacket)
-    //         }
-    //     }
-    // }
 }
 </script>
 

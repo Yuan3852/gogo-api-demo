@@ -23,11 +23,11 @@ const mutations = {
 import VueNativeSock from 'vue-native-websocket'
 import { CONST } from './store/const'
 import router from './router'
-import HighchartsVue from 'highcharts-vue'
+// import HighchartsVue from 'highcharts-vue'
 
 Vue.config.productionTip = false
 
-Vue.use(HighchartsVue)
+// Vue.use(HighchartsVue)
 
 Vue.use(VueResource)
 
