@@ -18,7 +18,7 @@ export default new Vuex.Store({
       message: 'disconnected',
       reconnectError: false,
       respond: 0,
-      respondSize: 0,
+      respondSize: 59,
       datalogStatus: ""
     },
     board: {
@@ -44,18 +44,20 @@ export default new Vuex.Store({
       if (message.stream != undefined) {
         let x = message.stream
         if(x[0] == 20){
-          let size = parseInt(x[1])
-          state.socket.respondSize = size
-          let status = parseInt(x[3])
-          console.log("in");
-          if(status == 1){
-            x.splice(0,4)
-            state.socket.respond = x
-            state.socket.datalogStatus = "Successfully retrieve the data from the board."
-          }else if(status == 2){
-            state.socket.datalogStatus = "Failed to sync data from board."
-          }else if(status == 3){
-            state.socket.datalogStatus = "This file is empty."
+          if(x[2] == 2){
+            let size = parseInt(x[1])
+            state.socket.respondSize = size
+            let status = parseInt(x[3])
+            console.log("in with size " + size);
+            if(status == 1){
+              x.splice(0,4)
+              state.socket.respond = x
+              state.socket.datalogStatus = "Successfully retrieve the data from the board."
+            }else if(status == 2){
+              state.socket.datalogStatus = "Failed to sync data from board."
+            }else if(status == 3){
+              state.socket.datalogStatus = "This file is empty."
+            }
           }
           // console.log("This is the size in side store: " + state.socket.respondSize)
         }

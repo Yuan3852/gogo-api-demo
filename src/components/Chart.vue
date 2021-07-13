@@ -1,14 +1,18 @@
 <template>
-    <Chart v-if="showChart" :options="options"/>
+    <Chart v-if="showChart" :highcharts="Highcharts" :options="options"/>
 </template>
 
 
 <script>
 import {Chart} from 'highcharts-vue'
 import Highcharts from 'highcharts'
+import Exporting from "highcharts/modules/exporting";
+import exportdata from "highcharts/modules/export-data";
 import stockInit from 'highcharts/modules/stock'
 import Vue from 'vue'
 
+Exporting(Highcharts)
+exportdata(Highcharts)
 stockInit(Highcharts)
 
 export default{
@@ -41,16 +45,16 @@ export default{
                 },
                 },
                 yAxis: {
-                title: {
-                    text: "Coin/h",
-                },
+                    title: {
+                        text: "Sensor Value",
+                    },
                 },
                 xAxis: {
-                type: "datetime",
-                tickInterval: 86400 * 1000, // 1 day in ms
-                labels: {
-                    rotation: 60,
-                },
+                    type: "datetime",
+                    tickInterval: 86400 * 10, // 1000 for 1 ms then 10 is 100ms
+                    labels: {
+                        rotation: 60,
+                    },
                 },
                 series: this.series,
         };
