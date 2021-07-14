@@ -47,17 +47,22 @@ export default new Vuex.Store({
           if(x[2] == 2){
             let size = parseInt(x[1])
             state.socket.respondSize = size
-            let status = parseInt(x[3])
-            console.log("in with size " + size);
-            if(status == 1){
-              x.splice(0,4)
+            state.socket.datalogStatus = parseInt(x[3])
+            x.splice(0,4)
+            if(state.socket.datalogStatus == 3){
+              console.log('No File');
+            }else{
               state.socket.respond = x
-              state.socket.datalogStatus = "Successfully retrieve the data from the board."
-            }else if(status == 2){
-              state.socket.datalogStatus = "Failed to sync data from board."
-            }else if(status == 3){
-              state.socket.datalogStatus = "This file is empty."
             }
+            // if(status == 1){
+            //   x.splice(0,4)
+            //   state.socket.respond = x
+            //   state.socket.datalogStatus = "Successfully retrieve the data from the board."
+            // }else if(status == 2){
+            //   state.socket.datalogStatus = "Failed to sync data from board."
+            // }else if(status == 3){
+            //   state.socket.datalogStatus = "This file is empty."
+            // }
           }
           // console.log("This is the size in side store: " + state.socket.respondSize)
         }
@@ -99,3 +104,4 @@ export default new Vuex.Store({
     gogoRespondStatus: state => state.socket.datalogStatus
   }
 })
+

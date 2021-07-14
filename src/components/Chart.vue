@@ -1,5 +1,5 @@
 <template>
-    <Chart v-if="showChart" :highcharts="Highcharts" :options="options"/>
+    <Chart v-if="showChart" :highcharts="Highcharts" :options="options" />
 </template>
 
 
@@ -9,7 +9,7 @@ import Highcharts from 'highcharts'
 import Exporting from "highcharts/modules/exporting";
 import exportdata from "highcharts/modules/export-data";
 import stockInit from 'highcharts/modules/stock'
-import Vue from 'vue'
+
 
 Exporting(Highcharts)
 exportdata(Highcharts)
@@ -74,3 +74,4 @@ export default{
     },
 }
 </script>
+
