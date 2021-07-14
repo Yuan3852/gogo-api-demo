@@ -8,6 +8,7 @@ import {
   SOCKET_RECONNECT,
   SOCKET_RECONNECT_ERROR
 } from './mutation-types.js'
+import { CONST } from './const'
 
 Vue.use(Vuex)
 
@@ -16,13 +17,16 @@ export default new Vuex.Store({
     socket: {
       isConnected: false,
       message: 'disconnected',
-      reconnectError: false,
-      respond: 0,
-      respondSize: 59,
-      datalogStatus: ""
+      reconnectError: false
     },
     board: {
       status: false
+    },
+    response: {
+      command: 0,
+      data: 0,
+      size: 0,
+      status: 0
     }
   },
   mutations: {
@@ -42,31 +46,15 @@ export default new Vuex.Store({
     // default handler called for all methods
     [SOCKET_ONMESSAGE](state, message) {
       if (message.stream != undefined) {
-        let x = message.stream
-        if(x[0] == 20){
-          if(x[2] == 2){
-            let size = parseInt(x[1])
-            state.socket.respondSize = size
-            state.socket.datalogStatus = parseInt(x[3])
-            x.splice(0,4)
-            if(state.socket.datalogStatus == 3){
-              console.log('No File');
-            }else{
-              state.socket.respond = x
-            }
-            // if(status == 1){
-            //   x.splice(0,4)
-            //   state.socket.respond = x
-            //   state.socket.datalogStatus = "Successfully retrieve the data from the board."
-            // }else if(status == 2){
-            //   state.socket.datalogStatus = "Failed to sync data from board."
-            // }else if(status == 3){
-            //   state.socket.datalogStatus = "This file is empty."
-            // }
-          }
-          // console.log("This is the size in side store: " + state.socket.respondSize)
+        if (message.stream[0] == CONST.response_packet_type) {
+          state.response.size = message.stream[1]
+          state.response.command = message.stream[2]
+          state.response.status = message.stream[3]
+          state.response.data = message.stream.filter(function (value, index) { return index > 3; })
         }
-        state.socket.message = message.stream
+        else {
+          state.socket.message = message.stream
+        }
         if (!state.board.status)
           state.board.status = true
       }
@@ -98,10 +86,8 @@ export default new Vuex.Store({
   },
   getters: {
     gogoReport: state => state.socket.message,
+    gogoResponse: state => state.response,
     boardStatus: state => state.board.status,
-    gogoRespond: state => state.socket.respond,
-    gogoRespondSize: state => state.socket.respondSize,
-    gogoRespondStatus: state => state.socket.datalogStatus
   }
 })
 
