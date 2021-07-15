@@ -10,7 +10,7 @@
     >
     </Dropdown>
     <div class="chart">
-      <chart :series="series" />
+      <datalog-chart ref="datalogChart" />
       {{ logRecord }}
     </div>
     <div id="container"></div>
@@ -35,7 +35,7 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 import { CONST } from "@/store/const";
-import chart from "@/components/Chart.vue";
+import DatalogChart from "@/components/Chart.vue";
 import Dropdown from "vue-simple-search-dropdown";
 import ProgressBar from "vuejs-progress-bar";
 
@@ -45,7 +45,7 @@ let dropdownname = [];
 export default {
   name: "Graph",
   components: {
-    chart,
+    DatalogChart,
     Dropdown,
     ProgressBar,
   },
@@ -54,8 +54,6 @@ export default {
       cmdCategory: 0,
       cmdID: 0,
       cmdParams: "",
-      stacker: [],
-      toggle: true,
       dropdownOptions: [],
       selected: "",
       startRetrivedOfflineDatalog: false,
@@ -111,7 +109,7 @@ export default {
 
     computePacket() {
       if (this.startRetrivedOfflineDatalog) {
-        return this.readText(this.gogoResponse);
+        return this.unpackOfflineDatalogPackets(this.gogoResponse);
       }
     },
     logRecord() {
@@ -143,9 +141,9 @@ export default {
           }
         }
       }
-      this.series = objJSON;
-      console.log(objJSON);
-      for (let i = 0; i < this.series.length; i++) {
+      this.$refs.datalogChart.chartOptions.series = objJSON;
+
+      for (let i = 0; i < objJSON.length; i++) {
         try {
           console.log("in rep :" + i + "works fine.");
           this.nRecords += objJSON[i]["data"].length;
@@ -222,10 +220,7 @@ export default {
 
       return obj;
     },
-    readText: function (packet) {
-      // saver.push(data)
-      // console.log(data);
-
+    unpackOfflineDatalogPackets: function (packet) {
       if (packet.data) {
         this.dataChunk.push.apply(this.dataChunk, packet.data);
 
@@ -284,167 +279,30 @@ export default {
               parseInt(
                 new BigUint64Array(new Uint8Array(record.slice(0, 8)).buffer)[0]
               ),
-              new Uint16Array(new Uint8Array(record.slice(8, 10)).buffer)[0],
-              new Uint16Array(new Uint8Array(record.slice(10, 12)).buffer)[0],
+              this.lookupTable[
+                new Uint16Array(new Uint8Array(record.slice(8, 10)).buffer)[0]
+              ],
+              this.lookupTable[
+                new Uint16Array(new Uint8Array(record.slice(10, 12)).buffer)[0]
+              ],
               new Float32Array(new Uint8Array(record.slice(12, 16)).buffer)[0],
             ]);
           });
           this.dataChunk = [];
           console.log(this.datalogRecords);
         }
+        dropdownname = [];
+        sin = this.testData(this.datalogRecords);
+        for (let i = 0; i < sin.length; i++) {
+          dropdownname.push({
+            name: sin[i]["channel"],
+            id: i + 1,
+          });
+        }
+        this.progressStatus = "Done.";
+        this.dropdownOptions = dropdownname;
+        this.datalogRecords = [];
       }
-      //   let indexToRead = 0;
-      //   let save = "";
-      //   let size = 0;
-      //   let x = data;
-      //   this.saver.push.apply(this.saver, x);
-      //   let arr = this.saver;
-      //   if (this.sizeOfPacket[1] != undefined) {
-      //     // console.log(this.sizeOfPacket);
-      //     this.percentage += (59 / this.sizeOfPacket[1]) * 100;
-      //     this.progressStatus = "Syncing.... ";
-      //   }
-      //   // in with size
-      //   if (this.gogoResponse.status == 4) {
-      //     // this.sizeOfPacket = []
-      //     size = this.gogoResponse.size;
-      //     console.log("computing size" + `with size ${size}`);
-      //     for (let i = indexToRead; i < size; i++) {
-      //       indexToRead++;
-      //       if (String.fromCharCode(arr[i]) == "\n") {
-      //         this.sizeOfPacket.push(parseInt(save));
-      //         console.log(`adding ${this.sizeOfPacket} in rep ${i}`);
-      //         save = "";
-      //       } else {
-      //         save += String.fromCharCode(arr[i]);
-      //       }
-      //     }
-      //     // console.log(this.sizeOfPacket);
-      //     this.saver = [];
-      //   }
-      //   // in with table
-      //   if (this.gogoResponse.status == 5) {
-      //     // this.tableVal = []
-      //     console.log("conputing table");
-      //     size = this.sizeOfPacket[0];
-      //     for (let i = 0; i < size; i++) {
-      //       indexToRead++;
-      //       if (String.fromCharCode(arr[i]) == ",") {
-      //         this.tableVal.push(save);
-      //         save = "";
-      //       } else {
-      //         save += String.fromCharCode(arr[i]);
-      //       }
-      //     }
-      //     console.log(this.tableVal);
-      //     this.saver = [];
-      //   }
-      // in with value
-      // if (this.gogoResponse.status == 6) {
-      //   // this.packetValue = []
-      //   this.progressStatus = "Converting bytes to value...";
-      //   console.log("computing values");
-      //   size = this.sizeOfPacket[1];
-      //   let tempArr = [];
-      //   let saveByteArray = [];
-      //   let readSizeIndex = 0;
-      //   for (let i = 0; i < size; i++) {
-      //     saveByteArray.push(parseInt(arr[i]));
-      //     readSizeIndex++;
-      //     if (
-      //       readSizeIndex == 8 ||
-      //       readSizeIndex == 10 ||
-      //       readSizeIndex == 12
-      //     ) {
-      //       // tempArr.push(saveByteArray.reverse())
-      //       tempArr.push(saveByteArray);
-      //       saveByteArray = [];
-      //     }
-      //     if (readSizeIndex == 16) {
-      //       tempArr.push(saveByteArray);
-      //       // tempArr.push(saveByteArray)
-      //       this.packetValue.push(tempArr);
-      //       readSizeIndex = 0;
-      //       saveByteArray = [];
-      //       tempArr = [];
-      //     }
-      //     // this.saver = []
-      //   }
-      // console.log(this.packetValue);
-
-      //     // start to convert bytes
-      //     let saveBuff = 0;
-      //     for (let i = 0; i < this.packetValue.length; i++) {
-      //       // copy buffer 0 (Time stamp)
-      //       let saveForConvertByte = this.packetValue[i][0];
-      //       for (let j = 0; j < saveForConvertByte.length; j++) {
-      //         saveBuff += saveForConvertByte[j] << (j * 8);
-      //       }
-      //       this.packetValue[i][0] = saveBuff;
-      //       saveBuff = 0;
-      //       // ***************************************************
-
-      //       // copy buffer 1 (channel)
-      //       saveForConvertByte = this.packetValue[i][1];
-      //       for (let j = 0; j < saveForConvertByte.length; j++) {
-      //         saveBuff += saveForConvertByte[j] << (j * 8);
-      //       }
-
-      //       // let parseChannel = this.tableVal.filter((element,index) => {
-      //       //     if(index == saveBuff){
-      //       //         return element
-      //       //     }
-      //       // })
-      //       this.packetValue[i][1] = this.tableVal[saveBuff];
-      //       saveBuff = 0;
-      //       // ***************************************************
-
-      //       // copy buffer 2 (field)
-      //       saveForConvertByte = this.packetValue[i][2];
-      //       for (let j = 0; j < saveForConvertByte.length; j++) {
-      //         saveBuff += saveForConvertByte[j] << (j * 8);
-      //       }
-
-      //       // parse index ไปก็พอ
-      //       // let parseField = this.tableVal.filter((element,index) => {
-      //       //     if(index == saveBuff){
-      //       //         return element
-      //       //     }
-      //       // })
-      //       this.packetValue[i][2] = this.tableVal[saveBuff];
-      //       saveBuff = 0;
-      //       // ***************************************************
-
-      //       // copy buffer 3 (Value)
-      //       saveForConvertByte = this.packetValue[i][3].reverse();
-      //       var buf = new ArrayBuffer(4);
-      //       var view = new DataView(buf);
-      //       // set bytes
-      //       saveForConvertByte.forEach(function (b, i) {
-      //         view.setUint8(i, b);
-      //       });
-      //       // Read the bits as a float; note that by doing this, we're implicitly
-      //       // converting it from a 32-bit float into JavaScript's native 64-bit double
-      //       var num = view.getFloat32(0);
-      //       this.packetValue[i][3] = num;
-      //       saveBuff = 0;
-      //       // ***************************************************
-      //     }
-      //     // console.log(this.packetValue);
-      //     dropdownname = [];
-      //     sin = this.testData(this.packetValue);
-      //     console.log(sin);
-      //     for (let i = 0; i < sin.length; i++) {
-      //       dropdownname.push({
-      //         name: sin[i]["channel"],
-      //         id: i + 1,
-      //       });
-      //     }
-      //     this.progressStatus = "Done.";
-      //     this.dropdownOptions = dropdownname;
-      //     this.saver = [];
-      //   }
-      // }
     },
     sendCommand: function (data, callback) {
       var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include endpoint ID
@@ -458,21 +316,6 @@ export default {
         callback();
       }
     },
-    sendControlCommand: function () {
-      var cmdList = [];
-      cmdList[CONST.category_id_index] = Number(this.cmdCategory);
-      cmdList[CONST.command_id_index] = Number(this.cmdID);
-
-      var params = "";
-      if (this.cmdParams != "") params = this.cmdParams.split(",");
-
-      for (var i in params)
-        cmdList[CONST.parameters_index + parseInt(i)] = parseInt(
-          params[parseInt(i)]
-        );
-
-      this.sendCommand(cmdList, null);
-    },
     sendOfflineDatalog: function () {
       var cmdList = [];
       this.saver = [];
@@ -483,30 +326,14 @@ export default {
       cmdList[CONST.category_id_index] = CONST.response_packet_type;
       cmdList[CONST.command_id_index] = CONST.rcmd_get_offline_datalog;
 
-      var params = "";
-      // if (this.cmdParams != "") params = this.cmdParams.split(",");
       this.startRetrivedOfflineDatalog = true;
 
-      for (var i in params)
-        cmdList[CONST.parameters_index + parseInt(i)] = parseInt(
-          params[parseInt(i)]
-        );
-
       this.sendCommand(cmdList, null);
-      // this.showText(this.gogoRespond)
     },
     clearData() {
       var cmdList = [];
       cmdList[CONST.category_id_index] = 20;
       cmdList[CONST.command_id_index] = 3;
-
-      var params = "";
-      // if (this.cmdParams != "") params = this.cmdParams.split(",");
-
-      for (var i in params)
-        cmdList[CONST.parameters_index + parseInt(i)] = parseInt(
-          params[parseInt(i)]
-        );
 
       this.sendCommand(cmdList, null);
     },
