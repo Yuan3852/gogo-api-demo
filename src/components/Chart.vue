@@ -25,29 +25,40 @@ export default {
   },
   data: () => ({
     chartOptions: {
-        colors: ["#77a1e5", "#2c3e50"],
-        title: {
-          text: null,
-          style: {
-            "font-family": "Avenir, Helvetica, Arial, sans-serif",
-            "-webkit-font-smoothing": "antialiased",
-            "-moz-osx-font-smoothing": "grayscale",
-            color: "#2c3e50",
-            "font-weight": "bold",
-            "font-size": "100%",
+      chart: {
+        height: 300,
+        zoomType: "x",
+        panning: true,
+        panKey: "shift",
+        resetZoomButton: {
+          theme: {
+            display: "none",
           },
         },
-        xAxis: {
-          type: "datetime",
-          tickInterval: 86400 * 10, // 1000 for 1 ms then 10 is 100ms
-          labels: {
-            rotation: 60,
-          },
+      },
+      colors: ["#77a1e5", "#2c3e50"],
+      title: {
+        text: null,
+        style: {
+          "font-family": "Avenir, Helvetica, Arial, sans-serif",
+          "-webkit-font-smoothing": "antialiased",
+          "-moz-osx-font-smoothing": "grayscale",
+          color: "#2c3e50",
+          "font-weight": "bold",
+          "font-size": "100%",
         },
-        time: {
-          useUTC: false,
+      },
+      xAxis: {
+        type: "datetime",
+        tickInterval: 86400 * 10, // 1000 for 1 ms then 10 is 100ms
+        labels: {
+          rotation: 60,
         },
-        series: [],
+      },
+      time: {
+        useUTC: false,
+      },
+      series: [],
     },
   }),
 };

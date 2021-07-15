@@ -1,12 +1,12 @@
 <template>
   <div class="Graph">
     <Dropdown
-      :options="dropdownOptions"
-      :disabled="false"
-      v-on:filter="getDropdownValues"
-      name="channels"
-      :maxItem="10"
-      placeholder="Please select an option"
+      class="channel-dropdown"
+      :options="arrayOfObjects"
+      :selected="selectedObject"
+      v-if="showDropdown"
+      v-on:updateOption="onSelectedChannel"
+      :placeholder="'Choose channel to plot.'"
     >
     </Dropdown>
     <div class="chart">
@@ -36,11 +36,8 @@
 import { mapActions, mapGetters } from "vuex";
 import { CONST } from "@/store/const";
 import DatalogChart from "@/components/Chart.vue";
-import Dropdown from "vue-simple-search-dropdown";
+import Dropdown from "vue-dropdowns";
 import ProgressBar from "vuejs-progress-bar";
-
-let sin = [];
-let dropdownname = [];
 
 export default {
   name: "Graph",
@@ -54,19 +51,14 @@ export default {
       cmdCategory: 0,
       cmdID: 0,
       cmdParams: "",
-      dropdownOptions: [],
-      selected: "",
+      arrayOfObjects: [],
+      selectedObject: {
+        name: "",
+      },
+      showDropdown: false,
       startRetrivedOfflineDatalog: false,
       series: [],
       nRecords: 0,
-      statusRec: {
-        channel: "",
-        size: 0,
-      },
-      saver: [],
-      sizeOfPacket: [],
-      tableVal: [],
-      packetValue: [],
       percentage: 0,
       progressStatus: "",
       progressBarOptions: {
@@ -78,10 +70,6 @@ export default {
           fontFamily: "Helvetica",
           dynamicPosition: false,
           hideText: true,
-        },
-        progress: {
-          color: "#2dbd2d",
-          backgroundColor: "#C0C0C0",
         },
         layout: {
           height: 35,
@@ -106,7 +94,6 @@ export default {
   },
   computed: {
     ...mapGetters(["gogoResponse"]),
-
     computePacket() {
       if (this.startRetrivedOfflineDatalog) {
         return this.unpackOfflineDatalogPackets(this.gogoResponse);
@@ -121,23 +108,18 @@ export default {
     },
   },
   mounted() {},
-  created() {
-    // let intval = setInterval(() => {
-    //     if(this.percentage < 100) this.percentage += .1
-    //     else clearInterval(intval)
-    // }, 10)
-  },
+  created() {},
   methods: {
     ...mapActions(["sendWS"]),
-
-    getDropdownValues(keyword) {
-      this.selected = keyword;
+    onSelectedChannel(payload) {
+      console.log("hi");
+      this.selectedObject = payload;
       let objJSON = [];
       this.nRecords = 0;
-      for (let i = 0; i < sin.length; i++) {
-        if (this.selected == sin[i]["channel"]) {
-          for (let j = 0; j < sin[i]["data"].length; j++) {
-            objJSON.push(sin[i]["data"][j]);
+      for (let i = 0; i < this.datalogRecords.length; i++) {
+        if (this.selectedObject.name == this.datalogRecords[i]["channel"]) {
+          for (let j = 0; j < this.datalogRecords[i]["data"].length; j++) {
+            objJSON.push(this.datalogRecords[i]["data"][j]);
           }
         }
       }
@@ -152,7 +134,7 @@ export default {
         }
       }
     },
-    testData: function (data) {
+    splitInToChannel: function (data) {
       let inputString = data;
       let obj = [];
       for (let i = 0; i < inputString.length; i++) {
@@ -221,8 +203,19 @@ export default {
       return obj;
     },
     unpackOfflineDatalogPackets: function (packet) {
+      if (packet.status == CONST.offline_datalog_status_empty) {
+        this.startRetrivedOfflineDatalog = false;
+        return "this file is empty";
+      }
+
       if (packet.data) {
         this.dataChunk.push.apply(this.dataChunk, packet.data);
+
+        if (this.datalogRecordsFileSize + this.lookupTableFileSize) {
+          this.percentage +=
+            (69 / (this.datalogRecordsFileSize + this.lookupTableFileSize)) *
+            100;
+        }
 
         //todo - retrive files size
         if (packet.status == CONST.offline_datalog_status_file_size) {
@@ -243,6 +236,7 @@ export default {
           }
           this.dataChunk = [];
           console.log(this.lookupTableFileSize, this.datalogRecordsFileSize);
+          return "retrieved file size...";
         }
 
         //todo - retrive lookup table
@@ -261,6 +255,7 @@ export default {
           }
           this.dataChunk = [];
           console.log(this.lookupTable);
+          return "retrieved lookup table...";
         }
 
         //todo - retrive datalog records
@@ -290,18 +285,22 @@ export default {
           });
           this.dataChunk = [];
           console.log(this.datalogRecords);
+          // added by toro
+          console.log(this.splitInToChannel(this.datalogRecords));
+          this.datalogRecords = this.splitInToChannel(this.datalogRecords);
+          let dropdownname = [];
+          for (let i = 0; i < this.datalogRecords.length; i++) {
+            dropdownname.push({
+              name: this.datalogRecords[i]["channel"],
+            });
+          }
+          this.arrayOfObjects = dropdownname;
+          console.log(this.arrayOfObjects);
+          this.showDropdown = true;
+          return "done...";
         }
-        dropdownname = [];
-        sin = this.testData(this.datalogRecords);
-        for (let i = 0; i < sin.length; i++) {
-          dropdownname.push({
-            name: sin[i]["channel"],
-            id: i + 1,
-          });
-        }
-        this.progressStatus = "Done.";
-        this.dropdownOptions = dropdownname;
-        this.datalogRecords = [];
+
+        return "Syncing...";
       }
     },
     sendCommand: function (data, callback) {
@@ -318,7 +317,6 @@ export default {
     },
     sendOfflineDatalog: function () {
       var cmdList = [];
-      this.saver = [];
       this.packetValue = [];
       this.tableVal = [];
       this.sizeOfPacket = [];
@@ -386,6 +384,13 @@ button {
 button.alt {
   color: #fff;
   background-color: #851e3e;
+}
+
+.channel-dropdown {
+  border-radius: 5px;
+  color: tomato;
+  font-size: 25px;
+  font-weight: 800;
 }
 </style>
 
