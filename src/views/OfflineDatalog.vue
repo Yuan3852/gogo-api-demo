@@ -11,24 +11,29 @@
     </Dropdown>
     <div class="chart">
       <datalog-chart ref="datalogChart" />
-      {{ logRecord }}
     </div>
-    <div id="container"></div>
-    {{ computePacket }}
-    <!-- <h3>Offline Datalog</h3> -->
+    <div id="container">
+      {{ offlineDatalogStatus }}
+      {{ computePacket }}
+    </div>
+
+
     <div class="progress-bar">
       {{ progressStatus }}
       <progress-bar
-        v-if="startRetrivedOfflineDatalog"
-        :options="progressBarOptions"
-        :value="percentage"
+        v-if="startRetrivedOfflineDatalog" 
+        size="medium"
+        bar-color="	#7CFC00"
+        :val="percentage"
       />
     </div>
     <br />
     <br />
-    <button @click="sendOfflineDatalog()">Sync Data</button>
-    <button @click="clearData()">Clear</button>
-    <button @click="test()">Test</button>
+    <ul class="container">
+      <button class="item" @click="sendOfflineDatalog()">Sync Data</button>
+      <button class="item" @click="clearData()">Clear</button>
+      <button class="item" @click="test()">Test</button>
+    </ul>
   </div>
 </template>
 
@@ -37,7 +42,7 @@ import { mapActions, mapGetters } from "vuex";
 import { CONST } from "@/store/const";
 import DatalogChart from "@/components/Chart.vue";
 import Dropdown from "vue-dropdowns";
-import ProgressBar from "vuejs-progress-bar";
+import ProgressBar from 'vue-simple-progress'
 
 export default {
   name: "Graph",
@@ -55,33 +60,13 @@ export default {
       selectedObject: {
         name: "",
       },
+      offlineDatalogStatus: '',
       showDropdown: false,
       startRetrivedOfflineDatalog: false,
       series: [],
       nRecords: 0,
       percentage: 0,
       progressStatus: "",
-      progressBarOptions: {
-        text: {
-          color: "#FFFFFF",
-          shadowEnable: true,
-          shadowColor: "#000000",
-          fontSize: 14,
-          fontFamily: "Helvetica",
-          dynamicPosition: false,
-          hideText: true,
-        },
-        layout: {
-          height: 35,
-          width: 200,
-          verticalTextAlign: 61,
-          horizontalTextAlign: 43,
-          zeroOffset: 0,
-          strokeWidth: 30,
-          progressPadding: 0,
-          type: "bar",
-        },
-      },
       dataChunk: [],
       lookupTable: [],
       datalogRecords: [],
@@ -96,19 +81,16 @@ export default {
     ...mapGetters(["gogoResponse"]),
     computePacket() {
       if (this.startRetrivedOfflineDatalog) {
-        return this.unpackOfflineDatalogPackets(this.gogoResponse);
-      }
-    },
-    logRecord() {
-      if (this.nRecords == 0) {
-        return "";
-      } else {
-        return this.selected + " with " + this.nRecords + " records.";
+        this.offlineDatalogStatus = this.unpackOfflineDatalogPackets(this.gogoResponse);
       }
     },
   },
-  mounted() {},
-  created() {},
+  mounted() {
+
+  },
+  created() {
+
+  },
   methods: {
     ...mapActions(["sendWS"]),
     onSelectedChannel(payload) {
@@ -133,6 +115,7 @@ export default {
           console.log("this is error in " + i + "with " + objJSON[i]["data"]);
         }
       }
+      this.offlineDatalogStatus = this.selectedObject.name + " with " + this.nRecords + " records.";
     },
     splitInToChannel: function (data) {
       let inputString = data;
@@ -213,7 +196,7 @@ export default {
 
         if (this.datalogRecordsFileSize + this.lookupTableFileSize) {
           this.percentage +=
-            (69 / (this.datalogRecordsFileSize + this.lookupTableFileSize)) *
+            (packet.size / (this.datalogRecordsFileSize + this.lookupTableFileSize)) *
             100;
         }
 
@@ -255,6 +238,7 @@ export default {
           }
           this.dataChunk = [];
           console.log(this.lookupTable);
+
           return "retrieved lookup table...";
         }
 
@@ -297,7 +281,8 @@ export default {
           this.arrayOfObjects = dropdownname;
           console.log(this.arrayOfObjects);
           this.showDropdown = true;
-          return "done...";
+          this.startRetrivedOfflineDatalog = false
+          return "done... please select channel from dropdown list.";
         }
 
         return "Syncing...";
@@ -364,7 +349,8 @@ textarea {
 }
 
 .progress-bar {
-  margin: 40px 0 0;
+  width: 50%;
+  margin: auto;
 }
 
 button {
@@ -392,6 +378,7 @@ button.alt {
   font-size: 25px;
   font-weight: 800;
 }
+
 </style>
 
 
