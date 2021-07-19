@@ -13,6 +13,7 @@ export const CONST = {
     response_packet_type: 20,
     
     rcmd_get_offline_datalog: 2,
+    rcmd_clear_offline_datalog: 3,
 
     offline_datalog_status_onprogress: 1,
     offline_datalog_status_failure: 2,

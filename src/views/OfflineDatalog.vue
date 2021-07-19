@@ -31,7 +31,6 @@
         Sync Data
       </button>
       <button class="item" @click="clearData()">Clear</button>
-      <button class="item" @click="test()">Test</button>
     </ul>
   </div>
 </template>
@@ -138,21 +137,16 @@ export default {
         }
       });
 
-      //? sorted by timestamp
-      for (const [key, channelRecords] of Object.entries(chartSeries)) {
-        channelRecords.forEach((fieldRecords) => {
-          fieldRecords["data"].sort((a, b) => a[0] - b[0]);
-        });
-      }
+      //? sorted by timestamp without changing value ascending
+      // for (const [key, channelRecords] of Object.entries(chartSeries)) {
+      //   channelRecords.forEach((fieldRecords) => {
+      //     fieldRecords["data"].sort((a, b) => a[0] - b[0]);
+      //   });
+      // }
       return chartSeries;
     },
 
     unpackOfflineDatalogPackets: function (packet) {
-      if (packet.status == CONST.offline_datalog_status_empty) {
-        this.startRetrivedOfflineDatalog = false;
-        return "this file is empty";
-      }
-
       if (packet.data) {
         this.dataChunk.push.apply(this.dataChunk, packet.data);
 
@@ -163,8 +157,18 @@ export default {
             100;
         }
 
+        if (packet.status == CONST.offline_datalog_status_empty) {
+          this.startRetrivedOfflineDatalog = false;
+          packet.status = 0;
+          packet.command = 0;
+          packet.size = 0;
+          packet.data = 0;
+
+          return "this file is empty";
+        }
+
         //todo - retrieve files size
-        if (packet.status == CONST.offline_datalog_status_file_size) {
+        else if (packet.status == CONST.offline_datalog_status_file_size) {
           let startPoint = 0;
           for (let i = 0; i < packet.size; i++) {
             if (String.fromCharCode(this.dataChunk[i]) == "\n") {
@@ -187,7 +191,7 @@ export default {
         }
 
         //todo - retrieve lookup table
-        if (packet.status == CONST.offline_datalog_status_lookup_table) {
+        else if (packet.status == CONST.offline_datalog_status_lookup_table) {
           let startPoint = 0;
           for (let i = 0; i < this.lookupTableFileSize; i++) {
             if (String.fromCharCode(this.dataChunk[i]) == ",") {
@@ -206,7 +210,7 @@ export default {
         }
 
         //todo - retrieve datalog records
-        if (packet.status == CONST.offline_datalog_status_records) {
+        else if (packet.status == CONST.offline_datalog_status_records) {
           let eachRecord = [];
           let records = [];
           for (let i = 1; i <= this.datalogRecordsFileSize; i++) {
@@ -239,12 +243,12 @@ export default {
           console.log(this.datalogRecords);
 
           //todo - push channel to dropdown list
+          this.arrayOfObjects = [];
           Object.keys(this.datalogRecords).forEach((channel) => {
             this.arrayOfObjects.push({
               name: channel,
             });
           });
-
           //? clearing all related data stream variables
           this.startRetrivedOfflineDatalog = false;
           packet.status = 0;
@@ -254,6 +258,7 @@ export default {
 
           return "done... please select channel from dropdown list.";
         }
+
         return "Syncing...";
       }
     },
@@ -271,30 +276,34 @@ export default {
     },
 
     syncOfflineDatalogRecords: function () {
-      //? clear all variables
-      this.dataChunk = [];
-      this.lookupTable = [];
-      this.datalogRecords = [];
-      this.lookupTableFileSize = 0;
-      this.datalogRecordsFileSize = 0;
-      this.percentage = 0;
+      if (!this.startRetrivedOfflineDatalog) {
+        //? clear all variables
+        this.dataChunk = [];
+        this.lookupTable = [];
+        this.datalogRecords = [];
+        this.lookupTableFileSize = 0;
+        this.datalogRecordsFileSize = 0;
+        this.percentage = 0;
 
-      //? set flag to retrieve new packets
-      this.startRetrivedOfflineDatalog = true;
+        //? set flag to retrieve new packets
+        this.startRetrivedOfflineDatalog = true;
 
-      var cmdList = [];
-      cmdList[CONST.category_id_index] = CONST.response_packet_type;
-      cmdList[CONST.command_id_index] = CONST.rcmd_get_offline_datalog;
+        var cmdList = [];
+        cmdList[CONST.category_id_index] = CONST.response_packet_type;
+        cmdList[CONST.command_id_index] = CONST.rcmd_get_offline_datalog;
 
-      this.sendCommand(cmdList, null);
+        this.sendCommand(cmdList, null);
+      }
     },
 
     clearData() {
-      var cmdList = [];
-      cmdList[CONST.category_id_index] = 20;
-      cmdList[CONST.command_id_index] = 3;
+      if (!this.startRetrivedOfflineDatalog) {
+        var cmdList = [];
+        cmdList[CONST.category_id_index] = CONST.response_packet_type;
+        cmdList[CONST.command_id_index] = CONST.rcmd_clear_offline_datalog;
 
-      this.sendCommand(cmdList, null);
+        this.sendCommand(cmdList, null);
+      }
     },
   },
 };
