@@ -8,7 +8,7 @@
       :placeholder="'Select channel to plot'"
     >
     </Dropdown>
-    <div class="chart">
+    <div class="chart-container">
       <datalog-chart ref="datalogChart" />
     </div>
     <div id="container">
@@ -26,7 +26,7 @@
     </div>
     <br />
     <br />
-    <ul class="container">
+    <ul class="bt-container">
       <button class="item" @click="syncOfflineDatalogRecords()">
         Sync Data
       </button>
@@ -333,8 +333,20 @@ textarea {
   height: 200px;
 }
 
+.chart-container{
+  width: 85%;
+  margin: auto;
+}
+
 .progress-bar {
   width: 50%;
+  margin: auto;
+}
+
+.bt-container {
+  display: flex;
+  justify-content: space-evenly;
+  width: 15%;
   margin: auto;
 }
 

@@ -1,9 +1,5 @@
 <template>
-  <highcharts
-    class="chart"
-    :constructor-type="'stockChart'"
-    :options="chartOptions"
-  ></highcharts>
+  <highcharts class="chart" :options="chartOptions"></highcharts>
 </template>
 
 
@@ -12,11 +8,11 @@ import { Chart } from "highcharts-vue";
 import Highcharts from "highcharts";
 import Exporting from "highcharts/modules/exporting";
 import exportdata from "highcharts/modules/export-data";
-import stockInit from "highcharts/modules/stock";
+// import stockInit from "highcharts/modules/stock";
 
 Exporting(Highcharts);
 exportdata(Highcharts);
-stockInit(Highcharts);
+// stockInit(Highcharts);
 
 export default {
   name: "datalog-chart",
@@ -26,7 +22,7 @@ export default {
   data: () => ({
     chartOptions: {
       chart: {
-        height: 300,
+        height: (9 / 16) * 75 + "%", //? 16:9 ratio @ 75%
         zoomType: "x",
         panning: true,
         panKey: "shift",
@@ -54,6 +50,10 @@ export default {
         labels: {
           rotation: 60,
         },
+      },
+      yAxis: {
+        max: 1100,
+        tickAmount: 11
       },
       time: {
         useUTC: false,
