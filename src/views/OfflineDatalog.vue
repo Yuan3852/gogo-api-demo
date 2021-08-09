@@ -2,10 +2,10 @@
   <div class="Graph">
     <Dropdown
       class="channel-dropdown"
-      :options="arrayOfObjects"
-      :selected="selectedObject"
-      v-on:updateOption="onSelectedChannel"
+      :options="channelsList"
+      :selected="selectedChannel"
       :placeholder="'Select channel to plot'"
+      v-on:updateOption="onSelectedChannel"
     >
     </Dropdown>
     <div class="chart-container">
@@ -62,8 +62,8 @@ export default {
       lookupTableFileSize: 0,
       datalogRecordsFileSize: 0,
       percentage: 0,
-      arrayOfObjects: [],
-      selectedObject: {
+      channelsList: [],
+      selectedChannel: {
         name: "selete channel",
       },
     };
@@ -72,7 +72,7 @@ export default {
     msg: String,
   },
   computed: {
-    ...mapGetters(["gogoResponse"]),
+    ...mapGetters(["gogoResponse", "boardStatus"]),
 
     computePacket() {
       if (this.startRetrivedOfflineDatalog) {
@@ -85,21 +85,21 @@ export default {
   mounted() {},
   created() {},
   methods: {
-    ...mapActions(["sendWS"]),
+    ...mapActions(["sendWS", "clearResponseWS"]),
 
     onSelectedChannel(payload) {
-      this.selectedObject = payload;
+      this.selectedChannel = payload;
       let nRecords = 0;
 
       //* pass new series data to highcharts
       this.$refs.datalogChart.chartOptions.series =
-        this.datalogRecords[this.selectedObject["name"]];
+        this.datalogRecords[this.selectedChannel["name"]];
 
-      this.datalogRecords[this.selectedObject["name"]].forEach((eachField) => {
+      this.datalogRecords[this.selectedChannel["name"]].forEach((eachField) => {
         nRecords += eachField["data"].length;
       });
       this.offlineDatalogStatus =
-        this.selectedObject.name + " with " + nRecords + " records.";
+        this.selectedChannel.name + " with " + nRecords + " records.";
     },
 
     splitRecordsToChartSeries: function (retrievedRecords) {
@@ -150,6 +150,7 @@ export default {
       if (packet.data) {
         this.dataChunk.push.apply(this.dataChunk, packet.data);
 
+        //todo - update progress percentage by retrieved file size
         if (this.datalogRecordsFileSize + this.lookupTableFileSize) {
           this.percentage +=
             (packet.size /
@@ -159,10 +160,7 @@ export default {
 
         if (packet.status == CONST.offline_datalog_status_empty) {
           this.startRetrivedOfflineDatalog = false;
-          packet.status = 0;
-          packet.command = 0;
-          packet.size = 0;
-          packet.data = 0;
+          this.clearResponseWS();
 
           return "this file is empty";
         }
@@ -243,18 +241,15 @@ export default {
           console.log(this.datalogRecords);
 
           //todo - push channel to dropdown list
-          this.arrayOfObjects = [];
+          this.channelsList = [];
           Object.keys(this.datalogRecords).forEach((channel) => {
-            this.arrayOfObjects.push({
+            this.channelsList.push({
               name: channel,
             });
           });
           //? clearing all related data stream variables
           this.startRetrivedOfflineDatalog = false;
-          packet.status = 0;
-          packet.command = 0;
-          packet.size = 0;
-          packet.data = 0;
+          this.clearResponseWS();
 
           return "done... please select channel from dropdown list.";
         }
@@ -276,7 +271,7 @@ export default {
     },
 
     syncOfflineDatalogRecords: function () {
-      if (!this.startRetrivedOfflineDatalog) {
+      if (!this.startRetrivedOfflineDatalog && this.boardStatus) {
         //? clear all variables
         this.dataChunk = [];
         this.lookupTable = [];
@@ -297,7 +292,7 @@ export default {
     },
 
     clearData() {
-      if (!this.startRetrivedOfflineDatalog) {
+      if (!this.startRetrivedOfflineDatalog && this.boardStatus) {
         var cmdList = [];
         cmdList[CONST.category_id_index] = CONST.response_packet_type;
         cmdList[CONST.command_id_index] = CONST.rcmd_clear_offline_datalog;
@@ -333,7 +328,7 @@ textarea {
   height: 200px;
 }
 
-.chart-container{
+.chart-container {
   width: 85%;
   margin: auto;
 }

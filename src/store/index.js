@@ -73,6 +73,12 @@ export default new Vuex.Store({
     [SOCKET_RECONNECT_ERROR](state) {
       state.socket.reconnectError = true;
     },
+    clear_response_socket(state) {
+      state.response.size = 0
+      state.response.status = 0
+      state.response.data = 0
+      state.response.command = 0
+    }
   },
   actions: {
     sendWS: function (context, data) {
@@ -81,6 +87,9 @@ export default new Vuex.Store({
         'data': data
       })
     },
+    clearResponseWS: function (context) {
+      context.commit('clear_response_socket')
+    }
   },
   modules: {
   },
