@@ -25,6 +25,7 @@ The process is divided into two steps.
 - [GoGo protocol docs](https://docs.google.com/spreadsheets/d/1CAfjpUdyYPqjVIPBuzxWlWMIDCX9ud6ybqAj8qMgy4E/edit?usp=sharing)
 
 ## Project setup
+### NodeJs version 14 is recommended
 ```
 npm install
 ```
