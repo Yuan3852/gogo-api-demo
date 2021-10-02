@@ -3,10 +3,10 @@ This file contains usage guide and development notes of offline datalog.
 
 ---
 ## User Usage Procedure
-1. User clicking on `Sync Data` button to start retrieves offline datalog data from GoGo Board
-2. while retrieving data, progress bar will showing with precentage
-3. when syncing completed, click on `select channel` dropdown, this will showing the channel of retrieved offline datalog data
-4. after selected channel, Chart will rendering the selected channel on screen
+1. User clicking on `Sync Data` button to start retrieves offline datalog data from **GoGo Board**
+2. while retrieving data, progress bar will showing with percentage
+3. when data sync is completed, click on `select channel` dropdown, this will showing the channel of retrieved offline datalog data
+4. after selected channel, Chart will rendering the selected channel records on screen
 ---
 
 ## WebApp - Development Note
