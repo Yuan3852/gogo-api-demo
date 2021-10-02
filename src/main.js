@@ -21,7 +21,8 @@ const mutations = {
 }
 
 import VueNativeSock from 'vue-native-websocket'
-import { CONST } from './store/const'
+import { CONST } from '@/store/const'
+import router from '@/router'
 
 Vue.config.productionTip = false
 
@@ -37,5 +38,6 @@ Vue.use(VueNativeSock, CONST.websocket_port, {
 
 new Vue({
   store,
+  router,
   render: h => h(App)
 }).$mount('#app')
