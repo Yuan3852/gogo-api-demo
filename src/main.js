@@ -21,8 +21,8 @@ const mutations = {
 }
 
 import VueNativeSock from 'vue-native-websocket'
-import { CONST } from './store/const'
-import router from './router'
+import { CONST } from '@/store/const'
+import router from '@/router'
 
 Vue.config.productionTip = false
 

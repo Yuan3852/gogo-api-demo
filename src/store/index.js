@@ -8,6 +8,7 @@ import {
   SOCKET_RECONNECT,
   SOCKET_RECONNECT_ERROR
 } from './mutation-types.js'
+import { CONST } from './const'
 
 Vue.use(Vuex)
 
@@ -16,10 +17,16 @@ export default new Vuex.Store({
     socket: {
       isConnected: false,
       message: 'disconnected',
-      reconnectError: false,
+      reconnectError: false
     },
     board: {
       status: false
+    },
+    response: {
+      command: 0,
+      data: 0,
+      size: 0,
+      status: 0
     }
   },
   mutations: {
@@ -39,7 +46,15 @@ export default new Vuex.Store({
     // default handler called for all methods
     [SOCKET_ONMESSAGE](state, message) {
       if (message.stream != undefined) {
-        state.socket.message = message.stream
+        if (message.stream[0] == CONST.response_packet_type) {
+          state.response.size = message.stream[1]
+          state.response.command = message.stream[2]
+          state.response.status = message.stream[3]
+          state.response.data = message.stream.filter(function (value, index) { return index > 3; })
+        }
+        else {
+          state.socket.message = message.stream
+        }
         if (!state.board.status)
           state.board.status = true
       }
@@ -58,6 +73,12 @@ export default new Vuex.Store({
     [SOCKET_RECONNECT_ERROR](state) {
       state.socket.reconnectError = true;
     },
+    clear_response_socket(state) {
+      state.response.size = 0
+      state.response.status = 0
+      state.response.data = 0
+      state.response.command = 0
+    }
   },
   actions: {
     sendWS: function (context, data) {
@@ -66,11 +87,16 @@ export default new Vuex.Store({
         'data': data
       })
     },
+    clearResponseWS: function (context) {
+      context.commit('clear_response_socket')
+    }
   },
   modules: {
   },
   getters: {
     gogoReport: state => state.socket.message,
-    boardStatus: state => state.board.status
+    gogoResponse: state => state.response,
+    boardStatus: state => state.board.status,
   }
 })
+
