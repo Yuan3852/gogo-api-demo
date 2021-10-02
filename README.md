@@ -7,12 +7,12 @@ The communication can be shows in following diagram
 
 ## When reading data packets from the GoGo.
 
-GoGo Board -- USB HID --> GoGo Plugin -- WS --> Web Application
+**GoGo Board** `-- USB HID -->` **GoGo Plugin** `-- WS -->` **Web Application**
 
 Note that data packets are automaticaly streamed upon power up. No need to make a request for them. 
 
 ## When controling the GoGo (e.g. turning on a motor)
-Web Application --> GoGo Plugin --> GoGo Board
+**Web Application** `-->` **GoGo Plugin** `-->` **GoGo Board**
 
 ## When compiling Logo Code and downloading the compiled binary code to the board.
 
