@@ -14,7 +14,7 @@ This file contains usage guide and development notes of offline datalog.
 **Data syncing** `-- offline datalog data -->` **Selecting datalog channel** `-- selected channel data -->` **Chart rendering**
 
 ### Syncing procedure
-- Starting with send `offline datalog request` command to GoGo Board (clicking `Sync Data` button), then set `startRetrivedOfflineDatalog` flag to start receives response packet from GoGo Board.
+- Starting with send `read offline datalog data` command to GoGo Board (clicking `Sync Data` button), then set `startRetrivedOfflineDatalog` flag to start receives response packet from GoGo Board.
 - GoGo Board will sending chunks of `response_packet_type` (packet type 20) with following data status in every packet.
     > Packet data status
     >  - `1`: on progress
@@ -91,28 +91,27 @@ This file contains usage guide and development notes of offline datalog.
 ---
 ## Firmware - Development Note
 ## Overview
-Offline Datalog Implementation is mainly about the communication between **Web Application** and **GoGoBoard** as shown in the diagram down below.
+the communication between **Web Application** and **GoGoBoard** can be separated into `Request` and `Response` commands.
 
 Request:**Web Aplication** `-- request command -->` **GoGoBoard**
 
 Response:**Web Application** `<-- response command --` **GoGoBoard**
 
 ## Request command(s) from WebApp
-The request will be sent as a packet through the **GoGo Plugin** to the **GoGoBoard** when the button was clicked. Each button contains the commnad ID which will be processed in **GoGoBoard**.
+The request will be sent as a packet to **GoGoBoard** when the button was clicked. Each button contains the command ID which will be processed in **GoGoBoard**.
 >Available command ID:
->- `2`: Get offline datalog data.
->- `3`: Clear offline datalog data in **GoGoBoard**.
+>- `2`: Read offline datalog data.
+>- `3`: Erase offline datalog data .
 
 ## Response command(s) to WebApp
-**GoGoBoard** responds to the **WebApp** on which command ID that it recieved. Note that `clear data` command will not sending a response.
+**GoGoBoard** sends a response to the **WebApp** on which command ID that it has recieved. Note that some commands will not sending a response if it doesn't need to response. e.g. erase command.
 
-## Example: request offline datalog data
-When the **Sync Data** button was clicked the **WebApp** will send the packet with a length of 64 bytes which contains the category ID as 20 and command ID as 2 to the **GoGoBoard** through **GoGo Plugin**.
-
->request packet: 20,2,0,0,0,0 ....... 0
+## Example: read offline datalog data
+When a **Sync Data** button was clicked, The **WebApp** will sending a packet with a length of 64 bytes which contains the category ID as `20`(packet type) and command ID as `2`(response of read command) to the **GoGoBoard**.
+>request packet: `[ 20, 2, 0, 0, 0, 0, ......., 0 ]`
 
 **GoGoBoard** will process the recieving packet then constructs the response packet for sending back to the **WebApp**
 
->response packet: 20,(packet length),(command ID),(status),(data)
+>response packet: `[ 20, <Packet Length>, <Command ID>, <Data Status>, <Payload / Data>, ... ]`
 
 ---
