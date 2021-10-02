@@ -11,17 +11,18 @@ This file contains usage guide and development notes of offline datalog.
 
 ## WebApp - Development Note
 ### Overview
-**Data syncing** `-- offline datalog data -->` **Selecting datalog channel** `-- specific channel data -->` **Chart rendering**
+**Data syncing** `-- offline datalog data -->` **Selecting datalog channel** `-- selected channel data -->` **Chart rendering**
 
 ### Syncing procedure
 - Starting with send `offline datalog request` command to GoGo Board (clicking `Sync Data` button), then set `startRetrivedOfflineDatalog` flag to start receives response packet from GoGo Board.
 - GoGo Board will sending chunks of `response_packet_type` (packet type 20) with following data status in every packet.
-  - 1: on progress
-  - 2: failure
-  - 3: records empty
-  - 4: file size complete
-  - 5: lookup table complete
-  - 6: records complete
+    > Packet data status
+    >  - `1`: on progress
+    >  - `2`: failure
+    >  - `3`: records empty
+    >  - `4`: file size complete
+    >  - `5`: lookup table complete
+    >  - `6`: records complete
   
   these status will be used when unpacking the data packet in `unpackOfflineDatalogPackets` while receives the response.
 
@@ -78,9 +79,14 @@ This file contains usage guide and development notes of offline datalog.
 
     After complete all five states, Data syncing will be done.
 
-### Channel selecting procedure
-
-### Rendering procedure
+### Channel selecting and Rendering procedure
+- We have created `datalog-chart` as component to separates rendering from data handler stuff.
+- After user selected channel from dropdown list. Channel name will be use as key to feed the records data to `datalog-chart`. To feed data to chart, We use `$refs` binding to directly access a child component(datalog-chart) as name `datalogChart`, Then injects `datalogRecords` by directly access `chartOption` of chart itself. For detailed can be found in this function `onSelectedChannel`.
+  >Beware to confusion about name of chart variables
+  >- `DatalogChart` - include name to registers component to `OfflineDatalog.vue`
+  >- `datalogChart` - reference name of `datalog-chart` component
+  >- `datalog-chart` - component name of chart itself
+- In this project, We use `highcharts` along with `highcharts-vue` as a wrapper. For more info and usage can be found [here](https://github.com/highcharts/highcharts-vue)
 
 ---
 ## Firmware - Development Note
