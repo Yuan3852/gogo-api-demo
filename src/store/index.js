@@ -85,11 +85,8 @@ export default new Vuex.Store({
       Vue.prototype.$webhidConnect()
     },
     sendHID: async function (context, data) {
-      let sendData = data.slice(1)
-      console.log(sendData);
-      let arraybuf = new ArrayBuffer(sendData.length)
-      arraybuf.buffer = sendData
-      await Vue.prototype.$webhid.sendReport(0, arraybuf)
+      let sendData = data.slice(1)  //? data must be 63 bytes without report id
+      await Vue.prototype.$webhid.sendReport(0, new Uint8Array(sendData))
     },
     clearResponseHID: function (context) {
       context.commit('clear_response_socket')
