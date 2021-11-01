@@ -1,7 +1,8 @@
 <template>
   <div class="gogo">
-    <img alt="gogo-logo" src="@/assets/gogo-logo.png">
+    <img alt="gogo-logo" src="@/assets/gogo-logo.png" />
     <div>
+      <button @click="connectGoGoDevice()">Connect device</button>
       <h3>GoGo Report</h3>
       <ul>
         {{
@@ -57,15 +58,19 @@ export default {
     ...mapGetters(["gogoReport", "boardStatus"]),
   },
   methods: {
-    ...mapActions(["sendWS"]),
+    ...mapActions(["connectDevice", "sendHID"]),
+
+    connectGoGoDevice: function () {
+      this.connectDevice();
+    },
 
     sendCommand: function (data, callback) {
-      var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include endpoint ID
+      var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include report ID
       for (var i in data) {
         cmdPacket[parseInt(i)] = data[i];
       }
       // console.log(cmdPacket);
-      this.sendWS(cmdPacket);
+      this.sendHID(cmdPacket);
 
       if (typeof callback === "function") {
         callback();
@@ -107,7 +112,8 @@ export default {
 
       // # copy the content to be transmitted to the output buffer
       for (var i = 0; i < cmdList[CONST.parameters_index]; i++) {
-        cmdList[CONST.parameters_index + 1 + Number(i)] = content[offset + Number(i)];
+        cmdList[CONST.parameters_index + 1 + Number(i)] =
+          content[offset + Number(i)];
       }
       offset += 60;
 
@@ -185,7 +191,9 @@ export default {
       if (this.cmdParams != "") params = this.cmdParams.split(",");
 
       for (var i in params)
-        cmdList[CONST.parameters_index + parseInt(i)] = parseInt(params[parseInt(i)]);
+        cmdList[CONST.parameters_index + parseInt(i)] = parseInt(
+          params[parseInt(i)]
+        );
 
       this.sendCommand(cmdList, null);
     },

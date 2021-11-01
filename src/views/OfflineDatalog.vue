@@ -85,7 +85,7 @@ export default {
   mounted() {},
   created() {},
   methods: {
-    ...mapActions(["sendWS", "clearResponseWS"]),
+    ...mapActions(["sendHID", "clearResponseHID"]),
 
     onSelectedChannel(payload) {
       this.selectedChannel = payload;
@@ -160,7 +160,7 @@ export default {
 
         if (packet.status == CONST.offline_datalog_status_empty) {
           this.startRetrivedOfflineDatalog = false;
-          this.clearResponseWS();
+          this.clearResponseHID();
 
           return "this file is empty";
         }
@@ -249,7 +249,7 @@ export default {
           });
           //? clearing all related data stream variables
           this.startRetrivedOfflineDatalog = false;
-          this.clearResponseWS();
+          this.clearResponseHID();
 
           return "done... please select channel from dropdown list.";
         }
@@ -259,11 +259,11 @@ export default {
     },
 
     sendCommand: function (data, callback) {
-      var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include endpoint ID
+      var cmdPacket = new Array(64).fill(0); //? HID data 64 bytes ** include report ID
       for (var i in data) {
         cmdPacket[parseInt(i)] = data[i];
       }
-      this.sendWS(cmdPacket);
+      this.sendHID(cmdPacket);
 
       if (typeof callback === "function") {
         callback();

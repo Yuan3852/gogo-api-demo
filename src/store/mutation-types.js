@@ -5,11 +5,25 @@ const SOCKET_ONMESSAGE = 'Websocket message received'
 const SOCKET_RECONNECT = 'Websocket reconnected'
 const SOCKET_RECONNECT_ERROR = 'Websocket is having issues reconnecting..'
 
+const HID_ONCONNECT = '✅ WebHID connected!'
+const HID_ONDISCONNECT = '❌ WebHID disconnected!'
+const HID_ONERROR = '❌ WebHID Error!!!'
+const HID_ONINPUTREPORT = 'WebHID message received'
+const HID_RECONNECT = 'WebHID reconnected'
+const HID_RECONNECT_ERROR = 'WebHID is having issues reconnecting..'
+
 export {
   SOCKET_ONOPEN,
   SOCKET_ONCLOSE,
   SOCKET_ONERROR,
   SOCKET_ONMESSAGE,
   SOCKET_RECONNECT,
-  SOCKET_RECONNECT_ERROR
+  SOCKET_RECONNECT_ERROR,
+
+  HID_ONCONNECT,
+  HID_ONDISCONNECT,
+  HID_ONERROR,
+  HID_ONINPUTREPORT,
+  HID_RECONNECT,
+  HID_RECONNECT_ERROR,
 }

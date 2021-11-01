@@ -1,12 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import {
-  SOCKET_ONOPEN,
-  SOCKET_ONCLOSE,
-  SOCKET_ONERROR,
-  SOCKET_ONMESSAGE,
-  SOCKET_RECONNECT,
-  SOCKET_RECONNECT_ERROR
+  HID_ONCONNECT,
+  HID_ONDISCONNECT,
+  HID_ONERROR,
+  HID_ONINPUTREPORT,
+  HID_RECONNECT,
+  HID_RECONNECT_ERROR
 } from './mutation-types.js'
 import { CONST } from './const'
 
@@ -30,30 +30,30 @@ export default new Vuex.Store({
     }
   },
   mutations: {
-    [SOCKET_ONOPEN](state, event) {
-      Vue.prototype.$socket = event.currentTarget
+    [HID_ONCONNECT](state, event) {
+      Vue.prototype.$webhid = event.currentTarget
       state.socket.isConnected = true
       state.board.status = false
-      console.log(SOCKET_ONOPEN)
+      console.log(HID_ONCONNECT)
     },
-    [SOCKET_ONCLOSE](state, event) {
+    [HID_ONDISCONNECT](state, event) {
       state.socket.isConnected = false
       state.board.status = false
+      console.log(HID_ONDISCONNECT);
     },
-    [SOCKET_ONERROR](state, event) {
+    [HID_ONERROR](state, event) {
       console.error(state, event)
     },
-    // default handler called for all methods
-    [SOCKET_ONMESSAGE](state, message) {
-      if (message.stream != undefined) {
-        if (message.stream[0] == CONST.response_packet_type) {
-          state.response.size = message.stream[1]
-          state.response.command = message.stream[2]
-          state.response.status = message.stream[3]
-          state.response.data = message.stream.filter(function (value, index) { return index > 3; })
+    [HID_ONINPUTREPORT](state, message) {
+      if (message != undefined) {
+        if (message[0] == CONST.response_packet_type) {
+          state.response.size = message[1]
+          state.response.command = message[2]
+          state.response.status = message[3]
+          state.response.data = message.filter(function (value, index) { return index > 3; })
         }
         else {
-          state.socket.message = message.stream
+          state.socket.message = message
         }
         if (!state.board.status)
           state.board.status = true
@@ -66,11 +66,11 @@ export default new Vuex.Store({
       }
     },
     // mutations for reconnect methods
-    [SOCKET_RECONNECT](state, count) {
+    [HID_RECONNECT](state, count) {
       console.info(state, count)
       state.board.status = false
     },
-    [SOCKET_RECONNECT_ERROR](state) {
+    [HID_RECONNECT_ERROR](state) {
       state.socket.reconnectError = true;
     },
     clear_response_socket(state) {
@@ -81,13 +81,17 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    sendWS: function (context, data) {
-      Vue.prototype.$socket.sendObj({
-        'type': 'rawHID',
-        'data': data
-      })
+    connectDevice: function (context) {
+      Vue.prototype.$webhidConnect()
     },
-    clearResponseWS: function (context) {
+    sendHID: async function (context, data) {
+      let sendData = data.slice(1)
+      console.log(sendData);
+      let arraybuf = new ArrayBuffer(sendData.length)
+      arraybuf.buffer = sendData
+      await Vue.prototype.$webhid.sendReport(0, arraybuf)
+    },
+    clearResponseHID: function (context) {
       context.commit('clear_response_socket')
     }
   },

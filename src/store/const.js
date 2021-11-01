@@ -1,7 +1,10 @@
 export const CONST = {
     websocket_port: "ws://localhost:8317",
     compiler_url: "https://7fkqkq6trh.execute-api.ap-southeast-1.amazonaws.com/logo/1.4/compile",
-    
+
+    hid_vid: 0x0461,
+    hid_pid: 0x0020,
+
     category_id_index: 1,
     command_id_index: 2,
     parameters_index: 3,
@@ -11,7 +14,7 @@ export const CONST = {
     firmware_version_index: 20,
 
     response_packet_type: 20,
-    
+
     rcmd_get_offline_datalog: 2,
     rcmd_clear_offline_datalog: 3,
 
