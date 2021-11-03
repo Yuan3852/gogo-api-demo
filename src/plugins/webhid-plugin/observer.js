@@ -8,33 +8,52 @@ export default class {
         this.deviceId = device_id
         this.deviceOpts = device_opts
 
-        this.reconnection = this.deviceOpts.reconnection || false
-        this.reconnectionAttempts = this.deviceOpts.reconnectionAttempts || Infinity
-        this.reconnectionDelay = this.deviceOpts.reconnectionDelay || 1000
-        this.reconnectTimeoutId = 0
-        this.reconnectionCount = 0
+        this.connectionStatus = false
 
         this.passToStoreHandler = this.deviceOpts.passToStoreHandler || false
-
-        this.connect(device_id, device_opts)
 
         //? pass user store and muations to used in class plugin
         if (device_opts.store) { this.store = device_opts.store }
         if (device_opts.mutations) { this.mutations = device_opts.mutations }
+
+        this.registerConnectionEvent()
     }
 
-    async connect(device_id) {
+    async openDevice() {
+        if (!this.device.opened) {
+            await this.device.open()
+        }
+        //? set prototype instance
+        this.deviceOpts.$setInstance(this.device)
+
+        //? starting event handler but its register after connected so `onconnect` is not firing
+        this.registerUserEvent()
+        this.device.onconnect(this.device)
+        this.connectionStatus = true
+    }
+
+    async closeDevice() {
+        if (this.device.opened) {
+            await this.device.close()
+        }
+        this.device.ondisconnect(this.device)
+        this.connectionStatus = false
+
+        //? set prototype instance
+        this.deviceOpts.$setInstance(null)
+        this.device = null
+    }
+
+    async connectManually(device_id) {
         const vendorId = device_id.hid_vid;
         const productId = device_id.hid_pid;
 
         let devices = await navigator.hid.getDevices();
         if (!devices.length) {
-            console.log('request device');
             devices = await navigator.hid.requestDevice({
                 filters: [{ vendorId, productId }],
             });
         }
-        console.log("devices:", devices);
         if (devices.length > 1) {
             devices.forEach(device => {
                 if (device.collections.length) {
@@ -47,48 +66,32 @@ export default class {
         }
         if (!this.device) return;
 
-        if (!this.device.opened) {
-            await this.device.open();
-        }
-        console.log("device opened:", this.device);
-
-        //? starting event handler but its register after connected so `onconnect` is not firing
-        this.onEvent()
-        this.deviceOpts.$setInstance(this.device)
-        this.reconnectionCount = 0
-
+        await this.openDevice()
         return this.device;
     }
 
-    reconnect() {
-        if (this.reconnectionCount <= this.reconnectionAttempts) {
-            this.reconnectionCount++
-            clearTimeout(this.reconnectTimeoutId)
-
-            this.reconnectTimeoutId = setTimeout(async () => {
-                if (this.store) { this.passToStore('HID_RECONNECT', this.reconnectionCount) }
-
-                await this.connect(this.deviceId, this.deviceOpts)
-                this.onEvent()
-            }, this.reconnectionDelay)
-        } else {
-            if (this.store) { this.passToStore('HID_RECONNECT_ERROR', true) }
-        }
+    registerConnectionEvent() {
+        ['connect', 'disconnect'].forEach((eventType) => {
+            navigator.hid.addEventListener(eventType, async ({ device }) => {
+                if (device.collections.length) {
+                    if (eventType === 'connect') {
+                        this.device = device
+                        await this.openDevice()
+                    }
+                    else if (eventType === 'disconnect') {
+                        await this.closeDevice()
+                    }
+                }
+            })
+        })
     }
 
-    onEvent() {
-        ['oninputreport', 'ondisconnect', 'onconnect'].forEach((eventType) => {
+    registerUserEvent() {
+        ['oninputreport', 'onconnect', 'ondisconnect'].forEach((eventType) => {
             this.device[eventType] = (event) => {
                 Emitter.emit(eventType, event)
 
                 if (this.store) { this.passToStore('HID_' + eventType, event) }
-
-                if (this.reconnection && eventType === 'onconnect') {
-                    this.deviceOpts.$setInstance(event.currentTarget)
-                    this.reconnectionCount = 0
-                }
-
-                if (this.reconnection && eventType === 'ondisconnect') { this.reconnect() }
             }
         })
     }

@@ -7,8 +7,6 @@ import {
   HID_ONDISCONNECT,
   HID_ONERROR,
   HID_ONINPUTREPORT,
-  HID_RECONNECT,
-  HID_RECONNECT_ERROR
 } from './store/mutation-types'
 
 const mutations = {
@@ -16,8 +14,6 @@ const mutations = {
   HID_ONDISCONNECT,
   HID_ONERROR,
   HID_ONINPUTREPORT,
-  HID_RECONNECT,
-  HID_RECONNECT_ERROR
 }
 
 // import VueNativeSock from 'vue-native-websocket'
@@ -35,10 +31,7 @@ Vue.use(HIDDevice, {
 }, {
   store: store,
   mutations: mutations,
-  reconnection: true,
-  reconnectionDelay: 2000,
   format: "json",
-  connectManually: true
 })
 
 // Vue.use(VueNativeSock, CONST.websocket_port, {

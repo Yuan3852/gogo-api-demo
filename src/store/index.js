@@ -5,8 +5,6 @@ import {
   HID_ONDISCONNECT,
   HID_ONERROR,
   HID_ONINPUTREPORT,
-  HID_RECONNECT,
-  HID_RECONNECT_ERROR
 } from './mutation-types.js'
 import { CONST } from './const'
 
@@ -17,7 +15,6 @@ export default new Vuex.Store({
     socket: {
       isConnected: false,
       message: 'disconnected',
-      reconnectError: false
     },
     board: {
       status: false
@@ -31,13 +28,13 @@ export default new Vuex.Store({
   },
   mutations: {
     [HID_ONCONNECT](state, event) {
-      Vue.prototype.$webhid = event.currentTarget
       state.socket.isConnected = true
       state.board.status = false
       console.log(HID_ONCONNECT)
     },
     [HID_ONDISCONNECT](state, event) {
       state.socket.isConnected = false
+      state.socket.message = 'disconnected'
       state.board.status = false
       console.log(HID_ONDISCONNECT);
     },
@@ -65,14 +62,6 @@ export default new Vuex.Store({
         }
       }
     },
-    // mutations for reconnect methods
-    [HID_RECONNECT](state, count) {
-      console.info(state, count)
-      state.board.status = false
-    },
-    [HID_RECONNECT_ERROR](state) {
-      state.socket.reconnectError = true;
-    },
     clear_response_socket(state) {
       state.response.size = 0
       state.response.status = 0
@@ -85,8 +74,10 @@ export default new Vuex.Store({
       Vue.prototype.$webhidConnect()
     },
     sendHID: async function (context, data) {
-      let sendData = data.slice(1)  //? data must be 63 bytes without report id
-      await Vue.prototype.$webhid.sendReport(0, new Uint8Array(sendData))
+      if (Vue.prototype.$webhid) {
+        let sendData = data.slice(1)  //? data must be 63 bytes without report id
+        await Vue.prototype.$webhid.sendReport(0, new Uint8Array(sendData))
+      }
     },
     clearResponseHID: function (context) {
       context.commit('clear_response_socket')

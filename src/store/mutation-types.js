@@ -9,8 +9,6 @@ const HID_ONCONNECT = '✅ WebHID connected!'
 const HID_ONDISCONNECT = '❌ WebHID disconnected!'
 const HID_ONERROR = '❌ WebHID Error!!!'
 const HID_ONINPUTREPORT = 'WebHID message received'
-const HID_RECONNECT = 'WebHID reconnected'
-const HID_RECONNECT_ERROR = 'WebHID is having issues reconnecting..'
 
 export {
   SOCKET_ONOPEN,
@@ -24,6 +22,4 @@ export {
   HID_ONDISCONNECT,
   HID_ONERROR,
   HID_ONINPUTREPORT,
-  HID_RECONNECT,
-  HID_RECONNECT_ERROR,
 }
