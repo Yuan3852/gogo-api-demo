@@ -17,6 +17,7 @@ export default class {
         if (device_opts.mutations) { this.mutations = device_opts.mutations }
 
         this.registerConnectionEvent()
+        this.connectManually(device_id, false)
     }
 
     async openDevice() {
@@ -44,12 +45,12 @@ export default class {
         this.device = null
     }
 
-    async connectManually(device_id) {
+    async connectManually(device_id, isUserPrompt = true) {
         const vendorId = device_id.hid_vid;
         const productId = device_id.hid_pid;
 
         let devices = await navigator.hid.getDevices();
-        if (!devices.length) {
+        if (!devices.length && isUserPrompt) {
             devices = await navigator.hid.requestDevice({
                 filters: [{ vendorId, productId }],
             });

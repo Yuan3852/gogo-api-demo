@@ -19,6 +19,10 @@ const routes = [
     path: '/offline-datalog',
     name: 'OfflineDatalog',
     component: OfflineDatalog
+  },
+  {
+    path: '*',
+    redirect: '/gogoapi'
   }
 ]
 
