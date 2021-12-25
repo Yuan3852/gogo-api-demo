@@ -20,7 +20,7 @@ The process is divided into two steps.
 1. Compile Logo Code. This is done by sending the text code to the compiler hosted on AWS. A compiled binary code is returned.
 2. Send the compiled binary code to the GoGo Board via the plugin 
 
-### Offline datalog feature
+## Offline datalog feature
 A chart to showing datalog records from the GoGo
 - Usage and Development Notes can be found here: [Offline Datalog Notes](OfflineDatalogNote.md)
 
