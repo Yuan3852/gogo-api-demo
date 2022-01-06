@@ -1,6 +1,6 @@
 export const CONST = {
     websocket_port: "ws://localhost:8317",
-    compiler_url: "https://7fkqkq6trh.execute-api.ap-southeast-1.amazonaws.com/logo/1.4/compile",
+    compiler_url: "https://yz0r1ll9pk.execute-api.ap-southeast-1.amazonaws.com/dev/dev/compile",
 
     hid_vid: 0x0461,
     hid_pid: 0x0020,
