@@ -12,6 +12,15 @@
     </div>
 
     <div>
+      <h3>Sensor values</h3>
+      <ul>
+        {{
+          processSensor
+        }}
+      </ul>
+    </div>
+
+    <div>
       <h3>Logo Program</h3>
       <br />
       <div>
@@ -56,6 +65,16 @@ export default {
   },
   computed: {
     ...mapGetters(["gogoReport", "boardStatus"]),
+
+    processSensor: function () {
+        var sensor_values = new Uint16Array(CONST.sensor_count)
+        for (var i = 0; i < CONST.sensor_count; i++)
+        {
+            var index = CONST.sensor_start_index + i * 2
+            sensor_values[i] = (this.gogoReport[index] << 8) + this.gogoReport[index + 1]
+        }
+        return sensor_values
+    },
   },
   methods: {
     ...mapActions(["connectDevice", "sendHID"]),
