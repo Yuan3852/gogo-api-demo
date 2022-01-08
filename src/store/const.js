@@ -1,7 +1,7 @@
 export const CONST = {
     websocket_port: "ws://localhost:8317",
-    compiler_url: "https://yz0r1ll9pk.execute-api.ap-southeast-1.amazonaws.com/dev/dev/compile",
-
+    compiler_url: "https://public-api.gogoboard.org/logo/dev/compile",
+    
     hid_vid: 0x0461,
     hid_pid: 0x0020,
 
