@@ -45,11 +45,11 @@ export default {
         },
       },
       xAxis: {
-        // type: "datetime",
-        // tickInterval: 86400 * 10, // 1000 for 1 ms then 10 is 100ms
-        // labels: {
-        //   rotation: 60,
-        // },
+        type: "datetime",
+        tickInterval: 86400 * 10, // 1000 for 1 ms then 10 is 100ms
+        labels: {
+          rotation: 60,
+        },
       },
       yAxis: {
         max: 1100,

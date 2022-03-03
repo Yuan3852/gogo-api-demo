@@ -1,19 +1,29 @@
 <template>
   <div class="Graph">
-    <Dropdown
-      class="channel-dropdown"
-      :options="channelsList"
-      :selected="selectedChannel"
-      :placeholder="'Select channel to plot'"
-      v-on:updateOption="onSelectedChannel"
-    >
-    </Dropdown>
-    <div class="chart-container">
-      <datalog-chart ref="datalogChart" />
-    </div>
-    <div id="container">
-      {{ offlineDatalogStatus }}
-      {{ computePacket }}
+    <ul class="bt-container">
+      <button class="item" @click="syncOfflineDatalogRecords()">
+        Sync Data
+      </button>
+      <button class="item" @click="clearData()">Clear</button>
+    </ul>
+    <div class="datapicker">
+      <date-picker
+        v-model="dateTimeOffset"
+        type="datetime"
+        placeholder="Select datetime "
+        value-type="timestamp"
+      ></date-picker>
+      <Dropdown
+        class="channel-dropdown"
+        :options="channelsList"
+        :selected="selectedChannel"
+        :placeholder="'Select channel to plot'"
+        v-on:updateOption="onSelectedChannel"
+      >
+      </Dropdown>
+      <button class="item" v-on:click="onSelectedChannel(selectedChannel)">
+        test
+      </button>
     </div>
 
     <div class="progress-bar">
@@ -24,14 +34,14 @@
         :val="percentage"
       />
     </div>
-    <br />
-    <br />
-    <ul class="bt-container">
-      <button class="item" @click="syncOfflineDatalogRecords()">
-        Sync Data
-      </button>
-      <button class="item" @click="clearData()">Clear</button>
-    </ul>
+    <div id="container">
+      {{ offlineDatalogStatus }}
+      {{ computePacket }}
+    </div>
+    <hr />
+    <div class="chart-container">
+      <datalog-chart ref="datalogChart" />
+    </div>
   </div>
 </template>
 
@@ -41,6 +51,8 @@ import { CONST } from "@/store/const";
 import DatalogChart from "@/components/Chart.vue";
 import Dropdown from "vue-dropdowns";
 import ProgressBar from "vue-simple-progress";
+import DatePicker from "vue2-datepicker";
+import "vue2-datepicker/index.css";
 
 export default {
   name: "Graph",
@@ -48,6 +60,7 @@ export default {
     DatalogChart,
     Dropdown,
     ProgressBar,
+    DatePicker,
   },
   data: function () {
     return {
@@ -66,6 +79,8 @@ export default {
       selectedChannel: {
         name: "selete channel",
       },
+      dateTimeOffset: null,
+      timestamp: 0,
     };
   },
   props: {
@@ -91,10 +106,18 @@ export default {
       this.selectedChannel = payload;
       let nRecords = 0;
 
+      //? Apply user datetime offset to series data.
+      this.datalogRecords[this.selectedChannel["name"]].forEach((field) => {
+        for (let i = 0; i < field["data"].length; i++) {
+          field["data"][i][0] += this.dateTimeOffset;
+        }
+        return field["data"];
+      });
+
       //* pass new series data to highcharts
       this.$refs.datalogChart.chartOptions.series =
         this.datalogRecords[this.selectedChannel["name"]];
-
+        
       this.datalogRecords[this.selectedChannel["name"]].forEach((eachField) => {
         nRecords += eachField["data"].length;
       });
@@ -300,6 +323,9 @@ export default {
         this.sendCommand(cmdList, null);
       }
     },
+    Test(datatimeoffset) {
+      console.log(datatimeoffset);
+    },
   },
 };
 </script>
@@ -349,7 +375,8 @@ button {
   font-size: 0.8em;
   cursor: pointer;
   outline: none;
-  padding: 0.75em 2em;
+  padding: 0.4em 3em;
+  margin: 0em 0.4em;
   border-radius: 2em;
   display: inline-block;
   color: #09af32;
@@ -366,7 +393,14 @@ button.alt {
 
 .channel-dropdown {
   border-radius: 5px;
+  margin: 0.5em 1em;
+  border: 1px solid #09af32;
+}
+.datapicker date-picker {
+  margin: 0.5em 1em;
+  border-radius: 5px;
+}
+button:hover {
+  background-color: rgba(115, 238, 125, 0.3);
 }
 </style>
-
-
