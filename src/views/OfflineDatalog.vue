@@ -1,9 +1,7 @@
 <template>
   <div class="Graph">
     <ul class="bt-container">
-      <button class="item" @click="syncOfflineDatalogRecords()">
-        Sync Data
-      </button>
+      <button class="item" @click="syncOfflineDatalogRecords()">Sync Data</button>
       <button class="item" @click="clearData()">Clear</button>
     </ul>
     <div class="datapicker">
@@ -12,6 +10,8 @@
         type="datetime"
         placeholder="Select datetime "
         value-type="timestamp"
+        v-on:updateOption="timestamp"
+        @change="onSelectedDate()"
       ></date-picker>
       <Dropdown
         class="channel-dropdown"
@@ -21,9 +21,7 @@
         v-on:updateOption="onSelectedChannel"
       >
       </Dropdown>
-      <button class="item" v-on:click="onSelectedChannel(selectedChannel)">
-        test
-      </button>
+     
     </div>
 
     <div class="progress-bar">
@@ -46,6 +44,7 @@
 </template>
 
 <script>
+
 import { mapActions, mapGetters } from "vuex";
 import { CONST } from "@/store/const";
 import DatalogChart from "@/components/Chart.vue";
@@ -96,6 +95,8 @@ export default {
         );
       }
     },
+
+
   },
   mounted() {},
   created() {},
@@ -105,9 +106,10 @@ export default {
     onSelectedChannel(payload) {
       this.selectedChannel = payload;
       let nRecords = 0;
-
+      
       //? Apply user datetime offset to series data.
-      this.datalogRecords[this.selectedChannel["name"]].forEach((field) => {
+      let renderdata =structuredClone(this.datalogRecords[this.selectedChannel["name"]]);//Deep Copy 
+      renderdata.forEach((field) => {
         for (let i = 0; i < field["data"].length; i++) {
           field["data"][i][0] += this.dateTimeOffset;
         }
@@ -116,13 +118,15 @@ export default {
 
       //* pass new series data to highcharts
       this.$refs.datalogChart.chartOptions.series =
-        this.datalogRecords[this.selectedChannel["name"]];
-        
+        renderdata; 
+
       this.datalogRecords[this.selectedChannel["name"]].forEach((eachField) => {
         nRecords += eachField["data"].length;
       });
       this.offlineDatalogStatus =
         this.selectedChannel.name + " with " + nRecords + " records.";
+      this.originaltimestamp = this.dateTimeOffset;
+    
     },
 
     splitRecordsToChartSeries: function (retrievedRecords) {
@@ -323,11 +327,21 @@ export default {
         this.sendCommand(cmdList, null);
       }
     },
-    Test(datatimeoffset) {
-      console.log(datatimeoffset);
-    },
+    //? Add function for refresh date on you pick
+  onSelectedDate(){
+      let renderdata =structuredClone(this.datalogRecords[this.selectedChannel["name"]]);//Deep Copy 
+      console.log(renderdata)
+      renderdata.forEach((field) => {
+        for (let i = 0; i < field["data"].length; i++) {
+          field["data"][i][0] += this.dateTimeOffset;
+        }
+        return field["data"];
+      });
+      this.$refs.datalogChart.chartOptions.series = renderdata; 
+    }
   },
 };
+
 </script>
 
 <style scoped>
