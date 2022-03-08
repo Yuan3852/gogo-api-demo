@@ -7,31 +7,31 @@
         </button>
       </div>
       <div class="delete-container">
-        <button class="delete-bt" @click="clearData()">
+        <button class="delete-bt" @click="$vm2.open('modal')">
           Delete data from GoGoBoard
         </button>
       </div>
     </ul>
     <div class="datapicker">
       <div class="datepciker-container">
-      <date-picker
-        v-model="dateTimeOffset"
-        type="datetime"
-        placeholder="Select datetime "
-        value-type="timestamp"
-        v-on:updateOption="timestamp"
-        @change="onSelectedDate()"
-      ></date-picker>
+        <date-picker
+          v-model="dateTimeOffset"
+          type="datetime"
+          placeholder="Select datetime "
+          value-type="timestamp"
+          v-on:updateOption="timestamp"
+          @change="onSelectedDate()"
+        ></date-picker>
       </div>
       <div class="dropdown-container">
-      <Dropdown
-        class="channel-dropdown"
-        :options="channelsList"
-        :selected="selectedChannel"
-        :placeholder="'Select channel to plot'"
-        v-on:updateOption="onSelectedChannel"
-      >
-      </Dropdown>
+        <Dropdown
+          class="channel-dropdown"
+          :options="channelsList"
+          :selected="selectedChannel"
+          :placeholder="'Select channel to plot'"
+          v-on:updateOption="onSelectedChannel"
+        >
+        </Dropdown>
       </div>
     </div>
     <div class="progress-bar">
@@ -49,6 +49,30 @@
     <hr />
     <div class="chart-container">
       <datalog-chart ref="datalogChart" />
+    </div>
+    <div class="modals">
+      <modal-vue
+        @on-close="$vm2.close('modal')"
+        name="modal"
+        noHeader
+        :footerOptions="{
+          btn1: 'Cancel',
+          btn2: 'Delete',
+          btn2Style: {
+            backgroundColor: 'red',
+          },
+          btn2OnClick: () => {
+            clearData();
+          },
+          btn1OnClick: () => {
+            $vm2.close('modal');
+          },
+        }"
+      >
+        <div>
+          <p>Want to delete the data?</p>
+        </div>
+      </modal-vue>
     </div>
   </div>
 </template>
@@ -332,6 +356,8 @@ export default {
         cmdList[CONST.command_id_index] = CONST.rcmd_clear_offline_datalog;
 
         this.sendCommand(cmdList, null);
+        alert("Data in GoGoBoard has been deleted");
+        this.$vm2.close("modal");
       }
     },
     //? Add function for refresh date on you pick
@@ -347,6 +373,13 @@ export default {
         return field["data"];
       });
       this.$refs.datalogChart.chartOptions.series = renderdata;
+    },
+    doDelete() {
+      this.$vm2.close("modal-1");
+      this.$vm2.close("modal-3");
+    },
+    close() {
+      this.$vm2.close("modal-4");
     },
   },
 };
@@ -437,25 +470,25 @@ button {
   color: #eb4e4e;
   border: 1px solid #eb4e4e;
 }
-.sync-container  {
+.sync-container {
   display: flex;
   justify-content: end;
   width: 50%;
-  margin-right: 1%;  
+  margin-right: 1%;
 }
 .delete-container {
-   display: flex;
+  display: flex;
   justify-content: start;
   width: 50%;
   margin-left: 1%;
 }
-.dropdown-container{
+.dropdown-container {
   display: flex;
   justify-content: start;
   width: 50%;
   margin-left: 2%;
 }
-.datepciker-container{
+.datepciker-container {
   display: flex;
   justify-content: end;
   width: 50%;

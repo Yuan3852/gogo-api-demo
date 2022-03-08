@@ -22,7 +22,7 @@ export default {
   data: () => ({
     chartOptions: {
       chart: {
-        height: (9 / 16) * 75 + "%", //? 16:9 ratio @ 75%
+        height: (9 / 16) * 70 + "%", //? 16:9 ratio @ 75%
         zoomType: "x",
         panning: true,
         panKey: "shift",
