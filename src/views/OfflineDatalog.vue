@@ -19,7 +19,6 @@
           type="datetime"
           placeholder="Select datetime "
           value-type="timestamp"
-          v-on:updateOption="timestamp"
           @change="onSelectedDate()"
         ></date-picker>
       </div>
@@ -113,6 +112,7 @@ export default {
       },
       dateTimeOffset: null,
       timestamp: 0,
+      renderData: null,
     };
   },
   props: {
@@ -136,28 +136,37 @@ export default {
 
     onSelectedChannel(payload) {
       this.selectedChannel = payload;
-      let nRecords = 0;
+      this.updateRenderGraph();
+    },
+    
+    //? Add function for refresh date on you pick
+    onSelectedDate() {
+      if (this.datalogRecords[this.selectedChannel["name"]]) {
+        this.updateRenderGraph();
+      }
+    },
 
-      //? Apply user datetime offset to series data.
-      let renderdata = structuredClone(
+    updateRenderGraph() {
+      let nRecords = 0;
+      this.renderData = structuredClone(
         this.datalogRecords[this.selectedChannel["name"]]
       ); //Deep Copy
-      renderdata.forEach((field) => {
-        for (let i = 0; i < field["data"].length; i++) {
-          field["data"][i][0] += this.dateTimeOffset;
-        }
-        return field["data"];
-      });
-
+      if (this.dateTimeOffset != null) {
+        this.renderData.forEach((field) => {
+          for (let i = 0; i < field["data"].length; i++) {
+            field["data"][i][0] += this.dateTimeOffset;
+          }
+          return field["data"];
+        });
+      }
       //* pass new series data to highcharts
-      this.$refs.datalogChart.chartOptions.series = renderdata;
+      this.$refs.datalogChart.chartOptions.series = this.renderData;
 
       this.datalogRecords[this.selectedChannel["name"]].forEach((eachField) => {
         nRecords += eachField["data"].length;
       });
       this.offlineDatalogStatus =
         this.selectedChannel.name + " with " + nRecords + " records.";
-      this.originaltimestamp = this.dateTimeOffset;
     },
 
     splitRecordsToChartSeries: function (retrievedRecords) {
@@ -359,27 +368,6 @@ export default {
         alert("Data in GoGoBoard has been deleted");
         this.$vm2.close("modal");
       }
-    },
-    //? Add function for refresh date on you pick
-    onSelectedDate() {
-      let renderdata = structuredClone(
-        this.datalogRecords[this.selectedChannel["name"]]
-      ); //Deep Copy
-      console.log(renderdata);
-      renderdata.forEach((field) => {
-        for (let i = 0; i < field["data"].length; i++) {
-          field["data"][i][0] += this.dateTimeOffset;
-        }
-        return field["data"];
-      });
-      this.$refs.datalogChart.chartOptions.series = renderdata;
-    },
-    doDelete() {
-      this.$vm2.close("modal-1");
-      this.$vm2.close("modal-3");
-    },
-    close() {
-      this.$vm2.close("modal-4");
     },
   },
 };
